@@ -8,7 +8,7 @@ function resolveWildcard(name){
   for(const key of entries.keys())if(key.endsWith("/"+name))return key;
   return null;
 }
-function expand(text, depth=0, stack=[]) {
+function expand(text, depth=0, stack=[], trace=null, source="메인") {
   if(depth>24) throw Error("와일드카드 중첩 제한(24단계)");
   return text.replace(/__([\p{L}\p{N}_./-]+)__/gu,(match,name)=>{
     const key=resolveWildcard(name);
@@ -16,8 +16,10 @@ function expand(text, depth=0, stack=[]) {
     if(stack.includes(key))throw Error("와일드카드 순환 참조: "+[...stack,key].join(" → "));
     const values=entries.get(key);
     if(!values.length)return "";
-    const selected=values[Math.floor(Math.random()*values.length)];
-    return expand(selected,depth+1,[...stack,key]);
+    const index=Math.floor(Math.random()*values.length);
+    const selected=values[index];
+    if(trace)trace.push({source,key,index:index+1,total:values.length,value:selected});
+    return expand(selected,depth+1,[...stack,key],trace,source);
   });
 }
 function splitTagsSmart(text){
@@ -115,7 +117,7 @@ function evaluateCondition(source,tags,lineNumber,characterSlots=[]){
   function or(){let v=and();while(tokens[i]==="||"||tokens[i]==="|"){i++;const rhs=and();v=v||rhs;}return v;}
   const result=or();if(i!==tokens.length)error();return result;
 }
-function applyRules(main, source,characterSlots=[]){
+function applyRules(main, source,characterSlots=[],trace=null){
   const context={prefix:[],main:[main],postfix:[]};
   const rules=source.split(/\r?\n/).map((text,index)=>({text:text.trim(),line:index+1})).filter(x=>x.text&&!x.text.startsWith("#"));
   for(let i=0;i<rules.length;i++){
@@ -125,7 +127,7 @@ function applyRules(main, source,characterSlots=[]){
     const [,needle,target,operator,value]=match;
     const tags=[...context.prefix,...context.main,...context.postfix].flatMap(splitTagsSmart);
     if(!evaluateCondition(needle,tags,lineNumber,characterSlots))continue;
-    const expanded=expand(value);
+    const expanded=expand(value,0,[],trace,"규칙 "+lineNumber+"행");
     if(operator==="=")context[target]=[expanded];
     else context[target].push(expanded);
   }
@@ -133,14 +135,16 @@ function applyRules(main, source,characterSlots=[]){
 }
 function preview(){
   try{
-    const main=expand(el("main").value);
-    const characterSlots=[expand(el("character-1").value),expand(el("character-2").value)];
-    const result=applyRules(main,el("rule").value,characterSlots);
+    const trace=[];
+    const main=expand(el("main").value,0,[],trace,"메인");
+    const characterSlots=[expand(el("character-1").value,0,[],trace,"캐릭터 1"),expand(el("character-2").value,0,[],trace,"캐릭터 2")];
+    const result=applyRules(main,el("rule").value,characterSlots,trace);
     count++;
     el("result").textContent="PREFIX: "+result.prefix.join(", ")+"\nMAIN: "+result.main.join(", ")+"\nPOSTFIX: "+result.postfix.join(", ");
     el("character-results").textContent=characterSlots.map((value,index)=>"캐릭터 "+(index+1)+": "+(value||"(비어 있음)")).join("\n");
+    el("wildcard-trace").textContent=trace.length?trace.map(item=>item.source+" · "+item.key+" ["+item.index+"/"+item.total+"] → "+item.value).join("\n"):"선택된 와일드카드 없음";
     el("status").textContent="미리보기 실행 "+count+"회 · 브라우저 부분 호환 엔진";
-  }catch(error){el("result").textContent="미리보기 실패: "+error.message;el("character-results").textContent="미리보기 실패: "+error.message;el("status").textContent="오류: "+error.message;}
+  }catch(error){el("result").textContent="미리보기 실패: "+error.message;el("character-results").textContent="미리보기 실패: "+error.message;el("wildcard-trace").textContent="미리보기 실패: "+error.message;el("status").textContent="오류: "+error.message;}
 }
 el("preview").addEventListener("click",preview);
 el("copy").addEventListener("click",async()=>{try{if(!el("result").textContent.startsWith("PREFIX: "))throw Error("먼저 미리보기를 실행하세요");await navigator.clipboard.writeText(el("result").textContent);el("status").textContent="결과 복사 완료";}catch{el("status").textContent="복사 실패: 브라우저 권한을 확인하세요";}});
