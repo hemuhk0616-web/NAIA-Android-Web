@@ -55,8 +55,17 @@ assert.doesNotMatch(x.result,/PREFIX: active/);
 element("character-1").value="blue hair";
 x=run("standing","(*char_on(1)):prefix+=active");
 assert.match(x.result,/PREFIX: active/);
+element("character-1").value="blue hair, golden eyes";
+x=run("standing","(*char_in(1, blue hair)):prefix+=matched");
+assert.match(x.result,/PREFIX: matched/);
+x=run("standing","(*char_in(1, *blue hair)):prefix+=exact");
+assert.match(x.result,/PREFIX: exact/);
+x=run("standing","(*char_in(1, red hair)):prefix+=wrong");
+assert.doesNotMatch(x.result,/PREFIX: wrong/);
+x=run("standing","(*char_in(1, blue hair & golden eyes)):prefix+=both");
+assert.match(x.result,/PREFIX: both/);
 element("character-1").value="";
-for(const fn of ["char_on(2)","char_in(1, standing)"]){
+for(const fn of ["char_on(2)","char_in(2, standing)"]){
   x=run("standing","(*"+fn+"):prefix+=incorrect");
   assert.match(x.status,/캐릭터 1 슬롯만 지원|조건 함수는 웹 미리보기에서 미지원/);
 }
