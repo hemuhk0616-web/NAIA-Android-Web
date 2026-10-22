@@ -37,6 +37,8 @@ assert.match(x.result,/PREFIX: hello/);
 assert.match(x.result,/POSTFIX: world/);
 x=run("standing","(*standing):prefix+=first\n(*first):postfix+=second");
 assert.match(x.result,/POSTFIX: second/);
+x=run("understanding","(*standing):prefix+=incorrect");
+assert.doesNotMatch(x.result,/incorrect/);
 x=run("standing","(*standing):main=changed");
 assert.match(x.result,/MAIN: changed/);
 x=run("__missing__","");
