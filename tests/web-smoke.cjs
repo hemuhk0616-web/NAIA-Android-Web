@@ -35,7 +35,7 @@ assert.match(x.result,/PREFIX: hello/);
 assert.match(x.result,/POSTFIX: world/);
 x=run("standing","(*standing):main=changed");
 assert.match(x.result,/MAIN: changed/);
-x=run("standing","(invalid):prefix+=hello");
+x=run("standing","unsupported rule");
 assert.match(x.status,/미지원 규칙/);
 element("main").value="saved prompt";
 element("rule").value="saved rule";
