@@ -33,7 +33,7 @@ function splitTagsSmart(text){
 }
 function evaluateCondition(source,tags,lineNumber){
   if(!source.trim())return true;
-  const tokens=source.match(/<[^>]*>|&&|\\|\\||[()!]|[^\\s()!&|]+/g)||[];
+  const tokens=source.match(/<[^>]*>|&&|\|\||[()!]|[^\s()!&|]+/g)||[];
   let i=0;
   const error=()=>{throw Error(lineNumber+"행: 조건식 문법 오류 — "+source);};
   function atom(){
@@ -44,22 +44,19 @@ function evaluateCondition(source,tags,lineNumber){
     return tags.includes(t);
   }
   function and(){let v=atom();while(tokens[i]==="&&"){i++;const rhs=atom();v=v&&rhs;}return v;}
-  funct    const matched=evaluateCondition(needle,tags,lineNumber);
-#"));
+  function or(){let v=and();while(tokens[i]==="||"){i++;const rhs=and();v=v||rhs;}return v;}
+  const result=or();if(i!==tokens.length)error();return result;
+}
+function applyRules(main, source){
+  const context={prefix:[],main:[main],postfix:[]};
+  const rules=source.split(/\r?\n/).map((text,index)=>({text:text.trim(),line:index+1})).filter(x=>x.text&&!x.text.startsWith("#"));
   for(let i=0;i<rules.length;i++){
     const {text:line,line:lineNumber}=rules[i];
-    const match=line.match(/^\(\*([^)]*)\):(prefix|main|postfix)\s*(\+=|=)\s*(.*)$/);
+    const match=line.match(/^\(\*(.*)\):(prefix|main|postfix)\s*(\+=|=)\s*(.*)$/);
     if(!match)throw Error(lineNumber+"행: 웹 미리보기 미지원 규칙 — "+line);
     const [,needle,target,operator,value]=match;
     const tags=[...context.prefix,...context.main,...context.postfix].flatMap(splitTagsSmart);
-    const condition=needle.trim();
-    const matched=condition===""||condition.split(/\s*\|\|\s*/).some(group=>group.split(/\s*&&\s*/).every(term=>{
-      const negated=term.startsWith("!");
-      const tag=(negated?term.slice(1):term).trim();
-      if(!tag)throw Error(lineNumber+"행: 빈 조건 항목");
-      return negated?!tags.includes(tag):tags.includes(tag);
-    }));
-    if(!matched)continue;
+    if(needle.trim()&&!tags.includes(needle.trim()))continue;
     const expanded=expand(value);
     if(operator==="=")context[target]=[expanded];
     else context[target].push(expanded);
@@ -238,4 +235,5 @@ el("batch-export").addEventListener("click",()=>{
     setTimeout(()=>URL.revokeObjectURL(url),1000);
     el("status").textContent="일괄 결과 TXT 내보내기 완료";
   }catch(e){el("status").textContent="일괄 결과 내보내기 오류: "+e.message;}
-});
+});    const matched=evaluateCondition(needle,tags,lineNumber);
+
