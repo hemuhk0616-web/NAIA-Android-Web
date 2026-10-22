@@ -40,6 +40,7 @@ assert.match(x.result,/MAIN: changed/);
 x=run("__missing__","");
 assert.match(x.status,/등록되지 않은 와일드카드: missing/);
 assert.match(element("result").textContent,/미리보기 실패/);
+assert.doesNotMatch(element("result").textContent,/PREFIX: smile/);
 x=run("standing","# comment\n\nunsupported rule");
 assert.match(x.status,/3행/);
 assert.match(x.status,/미지원 규칙/);
