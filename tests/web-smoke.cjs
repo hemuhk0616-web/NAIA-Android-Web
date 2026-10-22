@@ -67,6 +67,8 @@ x=run("(standing:1.2)","(*standing):prefix+=webui-weight");
 assert.match(x.result,/PREFIX: webui-weight/);
 x=run("long hair, blue eyes","(*long hair & blue eyes):prefix+=multiword");
 assert.match(x.result,/PREFIX: multiword/);
+x=run("long hair","(*\"long hair\"):prefix+=quoted-tag");
+assert.match(x.result,/PREFIX: quoted-tag/);
 x=run("long hair","(*~short hair):prefix+=not-short");
 assert.match(x.result,/PREFIX: not-short/);
 x=run("understanding","(*standing):prefix+=substring");
