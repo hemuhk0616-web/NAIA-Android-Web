@@ -134,7 +134,8 @@ function applyRules(main, source,characterSlots=[]){
 function preview(){
   try{
     const main=expand(el("main").value);
-    const result=applyRules(main,el("rule").value,[el("character-1").value,el("character-2").value]);
+    const characterSlots=[expand(el("character-1").value),expand(el("character-2").value)];
+    const result=applyRules(main,el("rule").value,characterSlots);
     count++;
     el("result").textContent="PREFIX: "+result.prefix.join(", ")+"\nMAIN: "+result.main.join(", ")+"\nPOSTFIX: "+result.postfix.join(", ");
     el("status").textContent="미리보기 실행 "+count+"회 · 브라우저 부분 호환 엔진";
