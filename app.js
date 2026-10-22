@@ -33,8 +33,8 @@ function splitTagsSmart(text){
 }
 function conditionTagVariants(tag){
   const result=[tag.trim()];
-  const nai=tag.match(/^[-+]?\\d+(?:\\.\\d+)?::(.+)::$/);
-  const webui=tag.match(/^\\((.+):[-+]?\\d+(?:\\.\\d+)?\\)$/);
+  const nai=tag.match(/^[-+]?\d+(?:\.\d+)?::(.+)::$/);
+  const webui=tag.match(/^\((.+):[-+]?\d+(?:\.\d+)?\)$/);
   const plain=(nai?.[1]||webui?.[1]||tag).trim();
   result.push(plain);
   if(plain.startsWith("(")&&plain.endsWith(")"))result.push(plain.slice(1,-1).trim());
