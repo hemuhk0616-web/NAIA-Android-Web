@@ -4,16 +4,16 @@ const entries = new Map([["pose",["standing"]],["face",["smile"]]]);
 const el = id => document.getElementById(id);
 let count=0;
 let candidateLocks=new Map();
-function parseCandidateLocks(source){
+function parseCandidateLocks(source,library=entries){
   const locks=new Map();
   for(const [i,raw] of source.split(/\r?\n/).entries()){
     const line=raw.trim();if(!line||line.startsWith("#"))continue;
     const match=line.match(/^([\p{L}\p{N}_.\/-]+)\s*=\s*(\d+)$/u);
     if(!match)throw Error("후보 고정 "+(i+1)+"행 형식 오류: "+line);
-    const key=resolveWildcard(match[1]);
+    const key=library.has(match[1])?match[1]:Array.from(library.keys()).find(k=>k.endsWith("/"+match[1]));
     if(!key)throw Error("후보 고정에 없는 와일드카드: "+match[1]);
     const index=Number(match[2]);
-    if(!Number.isSafeInteger(index)||index<1||index>entries.get(key).length)throw Error("후보 고정 번호 범위 오류: "+key+"="+match[2]);
+    if(!Number.isSafeInteger(index)||index<1||index>library.get(key).length)throw Error("후보 고정 번호 범위 오류: "+key+"="+match[2]);
     if(locks.has(key))throw Error("후보 고정 중복: "+key);
     locks.set(key,index-1);
   }
@@ -289,6 +289,7 @@ el("settings-file").addEventListener("change",async event=>{
       if(!key||!/^[\p{L}\p{N}_.\/-]+$/u.test(key)||key.split("/").some(part=>!part||part==="."||part==="..")||!Array.isArray(lines)||!lines.every(x=>typeof x==="string"))throw Error("와일드카드 형식 오류");
       imported.set(key,lines);
     }
+    parseCandidateLocks(data.wildcardLocks||"",imported);
     // Persist the complete validated backup before mutating the current editor.
     // A storage failure must leave the existing working state untouched.
     const previous=localStorage.getItem(LIBRARY_KEY);
