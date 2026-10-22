@@ -37,6 +37,8 @@ assert.match(x.result,/PREFIX: hello/);
 assert.match(x.result,/POSTFIX: world/);
 x=run("standing","(*standing):prefix+=first\n(*first):postfix+=second");
 assert.match(x.result,/POSTFIX: second/);
+x=run("<angry,shy|b|c>, standing","(*<angry,shy|b|c>):prefix+=matched");
+assert.match(x.result,/PREFIX: matched/);
 x=run("understanding","(*standing):prefix+=incorrect");
 assert.doesNotMatch(x.result,/incorrect/);
 x=run("standing","(*standing):main=changed");
