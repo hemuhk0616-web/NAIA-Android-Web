@@ -31,9 +31,21 @@ function splitTagsSmart(text){
   if(part.trim())tags.push(part.trim());
   return tags;
 }
-function applyRules(main, source){
-  const context={prefix:[],main:[main],postfix:[]};
-  const rules=source.split(/\r?\n/).map((text,index)=>({text:text.trim(),line:index+1})).filter(x=>x.text&&!x.text.startsWith("#"));
+function evaluateCondition(source,tags,lineNumber){
+  if(!source.trim())return true;
+  const tokens=source.match(/<[^>]*>|&&|\\|\\||[()!]|[^\\s()!&|]+/g)||[];
+  let i=0;
+  const error=()=>{throw Error(lineNumber+"행: 조건식 문법 오류 — "+source);};
+  function atom(){
+    const t=tokens[i++];
+    if(t==="!"){if(i>=tokens.length)error();return !atom();}
+    if(t==="("){const v=or();if(tokens[i++]!==")")error();return v;}
+    if(!t||t===")"||t==="&&"||t==="||")error();
+    return tags.includes(t);
+  }
+  function and(){let v=atom();while(tokens[i]==="&&"){i++;const rhs=atom();v=v&&rhs;}return v;}
+  funct    const matched=evaluateCondition(needle,tags,lineNumber);
+#"));
   for(let i=0;i<rules.length;i++){
     const {text:line,line:lineNumber}=rules[i];
     const match=line.match(/^\(\*([^)]*)\):(prefix|main|postfix)\s*(\+=|=)\s*(.*)$/);
