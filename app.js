@@ -158,7 +158,7 @@ function updateList(){
 }
 function saveDraft(){
   try{
-    localStorage.setItem(STORAGE_KEY,JSON.stringify({main:el("main").value,rule:el("rule").value}));
+    localStorage.setItem(STORAGE_KEY,JSON.stringify({main:el("main").value,rule:el("rule").value,character1:el("character-1").value}));
     el("status").textContent="이 브라우저에 프롬프트 저장 완료";
   }catch(e){el("status").textContent="저장 실패: "+e.message;}
 }
@@ -168,6 +168,7 @@ function restoreDraft(){
     if(!data){el("status").textContent="저장된 프롬프트가 없습니다";return;}
     el("main").value=String(data.main||"");
     el("rule").value=String(data.rule||"");
+    el("character-1").value=typeof data.character1==="string"?data.character1:"";
     el("status").textContent="저장본 불러오기 완료";
   }catch(e){el("status").textContent="불러오기 실패: "+e.message;}
 }
@@ -194,7 +195,7 @@ el("restore").addEventListener("click",restoreDraft);
 el("export").addEventListener("click",()=>{
   let url=null;
   try{
-    const data={format:"naia-web-v1",main:el("main").value,rule:el("rule").value,wildcards:Object.fromEntries(entries)};
+    const data={format:"naia-web-v1",main:el("main").value,rule:el("rule").value,character1:el("character-1").value,wildcards:Object.fromEntries(entries)};
     url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));
     const a=document.createElement("a");a.href=url;a.download="naia-web-settings.json";a.click();
     el("status").textContent="설정 JSON 다운로드 요청 완료 · 다운로드 폴더를 확인하세요";
@@ -210,6 +211,7 @@ el("settings-file").addEventListener("change",async event=>{
     if(file.size>5*1024*1024)throw Error("설정 파일이 너무 큽니다 (최대 5MB)");
     const data=JSON.parse(await file.text());
     if(!data||typeof data!=="object"||Array.isArray(data)||data.format!=="naia-web-v1"||typeof data.main!=="string"||typeof data.rule!=="string"||!data.wildcards||typeof data.wildcards!=="object"||Array.isArray(data.wildcards))throw Error("지원하지 않는 설정 형식");
+    if(data.character1!==undefined&&typeof data.character1!=="string")throw Error("캐릭터 1 프롬프트 형식 오류");
     const imported=new Map();
     for(const [key,lines] of Object.entries(data.wildcards)){
       if(!key||!/^[\p{L}\p{N}_.\/-]+$/u.test(key)||key.split("/").some(part=>!part||part==="."||part==="..")||!Array.isArray(lines)||!lines.every(x=>typeof x==="string"))throw Error("와일드카드 형식 오류");
@@ -221,7 +223,7 @@ el("settings-file").addEventListener("change",async event=>{
     const draftBefore=localStorage.getItem(STORAGE_KEY);
     try{
       localStorage.setItem(LIBRARY_KEY,JSON.stringify(Object.fromEntries(imported)));
-      localStorage.setItem(STORAGE_KEY,JSON.stringify({main:data.main,rule:data.rule}));
+      localStorage.setItem(STORAGE_KEY,JSON.stringify({main:data.main,rule:data.rule,character1:data.character1||""}));
     }catch(storageError){
       try{
         if(previous===null)localStorage.removeItem(LIBRARY_KEY);
@@ -233,7 +235,7 @@ el("settings-file").addEventListener("change",async event=>{
       }
       throw Error("설정 저장 실패 (기존 작업 유지): "+storageError.message);
     }
-    el("main").value=data.main;el("rule").value=data.rule;
+    el("main").value=data.main;el("rule").value=data.rule;el("character-1").value=data.character1||"";
     entries.clear();for(const [key,lines] of imported)entries.set(key,lines);
     updateList();el("status").textContent="설정 JSON 가져오기 및 저장 완료";
   }catch(e){el("status").textContent="설정 가져오기 실패: "+e.message;}
