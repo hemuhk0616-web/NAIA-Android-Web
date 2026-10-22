@@ -99,6 +99,14 @@ function evaluateCondition(source,tags,lineNumber,characterSlots=[]){
       if(slot!==1)throw Error(lineNumber+"행: 웹 미리보기는 캐릭터 1 슬롯만 지원합니다 — "+needle);
       return Boolean(characterSlots[0]?.trim());
     }
+    const charIn=needle.match(/^char_in\s*\(\s*(\d+)\s*,\s*(.*?)\s*\)$/i);
+    if(charIn){
+      const slot=Number(charIn[1]);
+      if(slot!==1)throw Error(lineNumber+"행: 웹 미리보기는 캐릭터 1 슬롯만 지원합니다 — "+needle);
+      if(!charIn[2])error();
+      const characterTags=splitTagsSmart(characterSlots[0]||"");
+      return evaluateCondition(charIn[2],characterTags,lineNumber,characterSlots);
+    }
     if(/^(?:rating|char_in|char_on)\s*\(/i.test(needle))throw Error(lineNumber+"행: 원본 NAIA 조건 함수는 웹 미리보기에서 미지원 — "+needle);
     const found=exact||exactNot?variants.includes(needle):variants.some(tag=>tag.includes(needle));
     return exactNot||containsNot?!found:found;
