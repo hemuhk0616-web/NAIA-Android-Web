@@ -42,6 +42,9 @@ el("preview").addEventListener("click",preview);
 el("copy").addEventListener("click",async()=>{try{await navigator.clipboard.writeText(el("result").textContent);el("status").textContent="결과 복사 완료";}catch{el("status").textContent="복사 실패: 브라우저 권한을 확인하세요";}});
 
 const STORAGE_KEY="naia-web-draft-v1";
+const LIBRARY_KEY="naia-web-wildcards-v1";
+function persistWildcards(){try{localStorage.setItem(LIBRARY_KEY,JSON.stringify(Object.fromEntries(entries)));}catch(e){el("status").textContent="와일드카드 자동 저장 실패: "+e.message;}}
+function restoreWildcards(){try{const saved=JSON.parse(localStorage.getItem(LIBRARY_KEY)||"null");if(saved&&typeof saved==="object"&&!Array.isArray(saved)){for(const [key,lines] of Object.entries(saved)){if(Array.isArray(lines)&&lines.every(x=>typeof x==="string"))entries.set(key,lines);}}}catch(e){console.warn("와일드카드 저장본 읽기 실패",e);}}
 function updateList(){
   el("loaded").textContent="와일드카드 "+entries.size+"개: "+Array.from(entries.keys()).join(", ");
   el("wildcards").textContent="";
@@ -85,7 +88,7 @@ async function importFiles(files){
     entries.set(key,lines);
     count++;
   }
-  updateList();
+  updateList();persistWildcards();
   el("status").textContent=count+"개 와일드카드 가져오기 완료 (현재 브라우저 메모리)";
 }
 el("files").addEventListener("change",event=>importFiles(Array.from(event.target.files||[])));
@@ -112,7 +115,7 @@ el("settings-file").addEventListener("change",async event=>{
     }
     el("main").value=data.main;el("rule").value=data.rule;
     entries.clear();for(const [key,lines] of imported)entries.set(key,lines);
-    updateList();el("status").textContent="설정 JSON 가져오기 완료";
+    updateList();persistWildcards();el("status").textContent="설정 JSON 가져오기 완료";
   }catch(e){el("status").textContent="설정 가져오기 실패: "+e.message;}
 });
 updateList();
@@ -134,7 +137,7 @@ el("wildcard-save").addEventListener("click",()=>{
   try{
     const key=wildcardKey();
     const lines=el("wildcard-lines").value.split(/\r?\n/).map(x=>x.trim()).filter(x=>x&&!x.startsWith("#"));
-    entries.set(key,lines);updateList();
+    entries.set(key,lines);updateList();persistWildcards();
     el("status").textContent=key+" 저장 완료 (JSON으로 내보내면 백업 가능)";
   }catch(e){el("status").textContent="오류: "+e.message;}
 });
@@ -142,7 +145,7 @@ el("wildcard-delete").addEventListener("click",()=>{
   try{
     const key=wildcardKey();
     if(!entries.delete(key))throw Error("등록된 와일드카드가 없습니다");
-    el("wildcard-lines").value="";updateList();
+    el("wildcard-lines").value="";updateList();persistWildcards();
     el("status").textContent=key+" 삭제 완료";
   }catch(e){el("status").textContent="오류: "+e.message;}
 });
