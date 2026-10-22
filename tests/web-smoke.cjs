@@ -86,6 +86,14 @@ assert.equal(element("wildcard-trace-actions").children.length>0,true);
 element("wildcard-locks").value="";
 element("wildcard-trace-actions").children.find(button=>button.textContent.includes("test/choice")).click();
 assert.equal(element("wildcard-locks").value,"test/choice=2");
+x=run("__test/choice__","");
+element("wildcard-trace-actions").children.find(button=>button.textContent==="test/choice 고정 해제").click();
+assert.equal(element("wildcard-locks").value,"");
+element("wildcard-locks").value="test/choice=2";
+element("save").click();
+element("wildcard-locks").value="";
+element("restore").click();
+assert.equal(element("wildcard-locks").value,"test/choice=2");
 
 element("wildcard-locks").value="test/choice=3";
 x=run("__test/choice__","");
