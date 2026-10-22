@@ -187,9 +187,27 @@ el("settings-file").addEventListener("change",async event=>{
       if(!key||!/^[\p{L}\p{N}_.\/-]+$/u.test(key)||key.split("/").some(part=>!part||part==="."||part==="..")||!Array.isArray(lines)||!lines.every(x=>typeof x==="string"))throw Error("와일드카드 형식 오류");
       imported.set(key,lines);
     }
+    // Persist the complete validated backup before mutating the current editor.
+    // A storage failure must leave the existing working state untouched.
+    const previous=localStorage.getItem(LIBRARY_KEY);
+    const draftBefore=localStorage.getItem(STORAGE_KEY);
+    try{
+      localStorage.setItem(LIBRARY_KEY,JSON.stringify(Object.fromEntries(imported)));
+      localStorage.setItem(STORAGE_KEY,JSON.stringify({main:data.main,rule:data.rule}));
+    }catch(storageError){
+      try{
+        if(previous===null)localStorage.removeItem(LIBRARY_KEY);
+        else localStorage.setItem(LIBRARY_KEY,previous);
+        if(draftBefore===null)localStorage.removeItem(STORAGE_KEY);
+        else localStorage.setItem(STORAGE_KEY,draftBefore);
+      }catch(rollbackError){
+        throw Error("설정 저장 실패 및 복원 실패: "+storageError.message+" / "+rollbackError.message);
+      }
+      throw Error("설정 저장 실패 (기존 작업 유지): "+storageError.message);
+    }
     el("main").value=data.main;el("rule").value=data.rule;
     entries.clear();for(const [key,lines] of imported)entries.set(key,lines);
-    updateList();if(persistWildcards())el("status").textContent="설정 JSON 가져오기 완료";
+    updateList();el("status").textContent="설정 JSON 가져오기 및 저장 완료";
   }catch(e){el("status").textContent="설정 가져오기 실패: "+e.message;}
 });
 restoreWildcards();updateList();
