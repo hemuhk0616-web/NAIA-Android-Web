@@ -32,6 +32,8 @@ function run(main,rule){
 let x=run("1girl, __pose__","(*standing):prefix+=__face__");
 assert.match(x.result,/PREFIX: smile/);
 assert.match(x.result,/MAIN: 1girl, standing/);
+x=run("standing","(*):prefix+=always");
+assert.match(x.result,/PREFIX: always/);
 x=run("standing","(*standing):prefix+=hello\n(*standing):postfix+=world");
 assert.match(x.result,/PREFIX: hello/);
 assert.match(x.result,/POSTFIX: world/);
