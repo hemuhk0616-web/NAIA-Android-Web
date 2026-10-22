@@ -62,6 +62,8 @@ element("batch-count").value="3";
 element("batch-run").click();
 assert.match(element("batch-results").textContent,/\[3\]/);
 assert.match(element("batch-results").textContent,/MAIN: (alpha|beta)/);
+element("batch-export").click();
+assert.match(element("status").textContent,/일괄 결과 TXT 내보내기 완료/);
 element("wildcard-export").click();
 assert.match(element("status").textContent,/TXT 내보내기 완료/);
 element("wildcard-name").value="표정/미소";
