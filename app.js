@@ -169,7 +169,7 @@ el("batch-run").addEventListener("click",()=>{
   }catch(e){el("batch-results").textContent="생성 실패 — "+e.message;el("status").textContent="일괄 생성 오류: "+e.message;}
 });
 el("batch-copy").addEventListener("click",async()=>{
-  try{await navigator.clipboard.writeText(el("batch-results").textContent);el("status").textContent="일괄 결과 복사 완료";}
+  try{if(!/^\[1\]\n/.test(el("batch-results").textContent))throw Error("먼저 일괄 생성을 실행하세요");await navigator.clipboard.writeText(el("batch-results").textContent);el("status").textContent="일괄 결과 복사 완료";}
   catch(e){el("status").textContent="일괄 결과 복사 실패: "+e.message;}
 });
 
