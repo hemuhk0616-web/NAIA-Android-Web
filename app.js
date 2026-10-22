@@ -61,6 +61,15 @@ function evaluateCondition(source,tags,lineNumber){
     if(ch==='"'||ch==="'"){quote=ch;buffer+=ch;continue;}
     if(ch==="<"){angle++;buffer+=ch;continue;}
     if(ch===">"&&angle){angle--;buffer+=ch;continue;}
+    if(!angle&&ch==="("&&/^(?:rating|char_in|char_on)\s*$/i.test(buffer.trim())){
+      let level=1,end=pos+1;
+      for(;end<source.length&&level;end++){
+        if(source[end]==="(")level++;
+        else if(source[end]===")")level--;
+      }
+      if(level)throw Error(lineNumber+"행: 조건식 문법 오류 — "+source);
+      buffer+=source.slice(pos,end);pos=end-1;continue;
+    }
     if(!angle&&(ch==="("||ch===")"||ch==="&"||ch==="|")){
       flush();
       if((ch==="&"||ch==="|")&&source[pos+1]===ch){tokens.push(ch+ch);pos++;}
