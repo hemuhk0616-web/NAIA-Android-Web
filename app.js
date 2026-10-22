@@ -44,7 +44,20 @@ el("copy").addEventListener("click",async()=>{try{await navigator.clipboard.writ
 const STORAGE_KEY="naia-web-draft-v1";
 function updateList(){
   el("loaded").textContent="와일드카드 "+entries.size+"개: "+Array.from(entries.keys()).join(", ");
-  el("wildcards").textContent=Array.from(entries.entries()).map(([key,lines])=>key+" ("+lines.length+"줄)").join(" · ");
+  el("wildcards").textContent="";
+  const picker=el("wildcard-picker");
+  picker.replaceChildren();
+  for(const [key,lines] of entries){
+    const button=document.createElement("button");
+    button.type="button";button.className="wildcard-item secondary";
+    button.textContent=key+" ("+lines.length+"줄)";
+    button.addEventListener("click",()=>{
+      el("wildcard-name").value=key;
+      el("wildcard-lines").value=lines.join("\\n");
+      el("status").textContent=key+" 편집 준비 완료";
+    });
+    picker.appendChild(button);
+  }
 }
 function saveDraft(){
   try{
