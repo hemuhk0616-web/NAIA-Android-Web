@@ -172,12 +172,24 @@ element("export").click();
 assert.match(element("status").textContent,/설정 JSON 내보내기 실패/);
 assert.match(element("status").textContent,/download blocked/);
 ctx.URL.createObjectURL=originalCreateObjectURL;
+// Character prompt must survive save/restore and legacy drafts.
+element("character-1").value="blue hair, gold eyes";
+element("save").click();
+element("character-1").value="";
+element("restore").click();
+assert.equal(element("character-1").value,"blue hair, gold eyes");
+assert.equal(JSON.parse(local.get("naia-web-draft-v1")).character1,"blue hair, gold eyes");
+local.set("naia-web-draft-v1",JSON.stringify({main:"legacy",rule:""}));
+element("restore").click();
+assert.equal(element("character-1").value,"");
 // JSON import must restore both prompt fields and wildcard library.
 (async()=>{
-  const backup={format:"naia-web-v1",main:"restored prompt",rule:"(*):prefix+=ok",wildcards:{"restored/eyes":["blue eyes"]}};
+  const backup={format:"naia-web-v1",main:"restored prompt",rule:"(*):prefix+=ok",character1:"pink eyes",wildcards:{"restored/eyes":["blue eyes"]}};
   await element("settings-file").handlers.change({target:{files:[{size:128,text:async()=>JSON.stringify(backup)}]}});
   assert.equal(element("main").value,"restored prompt");
   assert.equal(element("rule").value,"(*):prefix+=ok");
+  assert.equal(element("character-1").value,"pink eyes");
+  assert.equal(JSON.parse(local.get("naia-web-draft-v1")).character1,"pink eyes");
   assert.equal(JSON.parse(local.get("naia-web-draft-v1")).main,"restored prompt");
   assert.equal(JSON.parse(local.get("naia-web-wildcards-v1"))["restored/eyes"][0],"blue eyes");
   // Simulate a failed draft write; old editor and library must remain intact.
