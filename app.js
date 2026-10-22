@@ -39,7 +39,7 @@ function preview(){
   }catch(error){el("result").textContent="미리보기 실패: "+error.message;el("status").textContent="오류: "+error.message;}
 }
 el("preview").addEventListener("click",preview);
-el("copy").addEventListener("click",async()=>{try{await navigator.clipboard.writeText(el("result").textContent);el("status").textContent="결과 복사 완료";}catch{el("status").textContent="복사 실패: 브라우저 권한을 확인하세요";}});
+el("copy").addEventListener("click",async()=>{try{if(!el("result").textContent.startsWith("PREFIX: "))throw Error("먼저 미리보기를 실행하세요");await navigator.clipboard.writeText(el("result").textContent);el("status").textContent="결과 복사 완료";}catch{el("status").textContent="복사 실패: 브라우저 권한을 확인하세요";}});
 
 const STORAGE_KEY="naia-web-draft-v1";
 const LIBRARY_KEY="naia-web-wildcards-v1";
