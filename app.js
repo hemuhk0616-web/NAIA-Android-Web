@@ -191,7 +191,7 @@ el("settings-file").addEventListener("change",async event=>{
   try{
     if(file.size>5*1024*1024)throw Error("설정 파일이 너무 큽니다 (최대 5MB)");
     const data=JSON.parse(await file.text());
-    if(data.format!=="naia-web-v1"||typeof data.main!=="string"||typeof data.rule!=="string"||!data.wildcards||typeof data.wildcards!=="object"||Array.isArray(data.wildcards))throw Error("지원하지 않는 설정 형식");
+    if(!data||typeof data!=="object"||Array.isArray(data)||data.format!=="naia-web-v1"||typeof data.main!=="string"||typeof data.rule!=="string"||!data.wildcards||typeof data.wildcards!=="object"||Array.isArray(data.wildcards))throw Error("지원하지 않는 설정 형식");
     const imported=new Map();
     for(const [key,lines] of Object.entries(data.wildcards)){
       if(!key||!/^[\p{L}\p{N}_.\/-]+$/u.test(key)||key.split("/").some(part=>!part||part==="."||part==="..")||!Array.isArray(lines)||!lines.every(x=>typeof x==="string"))throw Error("와일드카드 형식 오류");
