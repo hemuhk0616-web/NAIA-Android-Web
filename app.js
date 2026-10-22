@@ -156,7 +156,6 @@ async function importFiles(files){
     imported.push([key,lines]);
     count++;
   }
-  const previous=new Map(entries);
   for(const [key,lines] of imported)entries.set(key,lines);
   updateList();if(persistWildcards())el("status").textContent=count+"개 와일드카드 가져오기 완료 (브라우저에 자동 저장됨)";
 }
