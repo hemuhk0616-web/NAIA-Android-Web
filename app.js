@@ -42,7 +42,7 @@ function conditionTagVariants(tag){
 }
 function evaluateCondition(source,tags,lineNumber){
   if(!source.trim())return true;
-  const tokens=source.match(/<[^>]*>|&&|\|\||[()!]|[^\s()!&|]+/g)||[];
+  const tokens=source.match(/<[^>]*>|&&|\|\||[()!&|]|[^\s()!&|]+/g)||[];
   if(tokens.join("").replace(/\s/g,"")!==source.replace(/\s/g,""))throw Error(lineNumber+"행: 조건식 문법 오류 — "+source);
   let i=0;
   const error=()=>{throw Error(lineNumber+"행: 조건식 문법 오류 — "+source);};
@@ -50,11 +50,11 @@ function evaluateCondition(source,tags,lineNumber){
     const t=tokens[i++];
     if(t==="!"){if(i>=tokens.length)error();return !atom();}
     if(t==="("){const v=or();if(tokens[i++]!==")")error();return v;}
-    if(!t||t===")"||t==="&&"||t==="||")error();
+    if(!t||t===")"||t==="&&"||t==="||"||t==="&"||t==="|")error();
     return tags.some(tag=>conditionTagVariants(tag).includes(t));
   }
-  function and(){let v=atom();while(tokens[i]==="&&"){i++;const rhs=atom();v=v&&rhs;}return v;}
-  function or(){let v=and();while(tokens[i]==="||"){i++;const rhs=and();v=v||rhs;}return v;}
+  function and(){let v=atom();while(tokens[i]==="&&"||tokens[i]==="&"){i++;const rhs=atom();v=v&&rhs;}return v;}
+  function or(){let v=and();while(tokens[i]==="||"||tokens[i]==="|"){i++;const rhs=and();v=v||rhs;}return v;}
   const result=or();if(i!==tokens.length)error();return result;
 }
 function applyRules(main, source){
