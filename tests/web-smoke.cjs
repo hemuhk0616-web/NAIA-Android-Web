@@ -255,6 +255,21 @@ assert.equal(element("character-1").value,"");
   assert.equal(JSON.parse(local.get("naia-web-draft-v1")).character1,"pink eyes");
   assert.equal(JSON.parse(local.get("naia-web-draft-v1")).main,"restored prompt");
   assert.equal(JSON.parse(local.get("naia-web-wildcards-v1"))["restored/eyes"][0],"blue eyes");
+  // Full JSON restore with multiple simultaneous candidate locks.
+  const lockedBackup={...backup,character2:"silver hair",wildcardLocks:"restored/eyes=1\npose=2",wildcards:{"restored/eyes":["blue eyes"],pose:["sitting","standing"]}};
+  await element("settings-file").handlers.change({target:{files:[{size:256,text:async()=>JSON.stringify(lockedBackup)}]}});
+  assert.equal(element("character-2").value,"silver hair");
+  assert.equal(element("wildcard-locks").value,"restored/eyes=1\npose=2");
+  assert.equal(JSON.parse(local.get("naia-web-draft-v1")).wildcardLocks,"restored/eyes=1\npose=2");
+  let locked=run("__pose__, __restored/eyes__","");
+  assert.match(locked.result,/MAIN: standing, blue eyes/);
+  const invalidLocks={...lockedBackup,wildcardLocks:"pose=3"};
+  await element("settings-file").handlers.change({target:{files:[{size:256,text:async()=>JSON.stringify(invalidLocks)}]}});
+  assert.match(element("status").textContent,/설정 가져오기 실패/);
+  assert.equal(element("wildcard-locks").value,"restored/eyes=1\npose=2");
+  assert.equal(JSON.parse(local.get("naia-web-draft-v1")).wildcardLocks,"restored/eyes=1\npose=2");
+  await element("settings-file").handlers.change({target:{files:[{size:128,text:async()=>JSON.stringify(backup)}]}});
+  assert.equal(element("wildcard-locks").value,"");
   // Simulate a failed draft write; old editor and library must remain intact.
   const setItem=ctx.localStorage.setItem;
   ctx.localStorage.setItem=(key,value)=>{if(key==="naia-web-draft-v1")throw Error("quota");return setItem(key,value);};
