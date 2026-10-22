@@ -20,6 +20,17 @@ function expand(text, depth=0, stack=[]) {
     return expand(selected,depth+1,[...stack,key]);
   });
 }
+function splitTagsSmart(text){
+  const tags=[];let part="",depth=0;
+  for(const ch of text){
+    if(ch==="<")depth++;
+    else if(ch===">")depth=Math.max(0,depth-1);
+    if(ch===","&&depth===0){if(part.trim())tags.push(part.trim());part="";}
+    else part+=ch;
+  }
+  if(part.trim())tags.push(part.trim());
+  return tags;
+}
 function applyRules(main, source){
   const context={prefix:[],main:[main],postfix:[]};
   const rules=source.split(/\r?\n/).map((text,index)=>({text:text.trim(),line:index+1})).filter(x=>x.text&&!x.text.startsWith("#"));
@@ -28,7 +39,7 @@ function applyRules(main, source){
     const match=line.match(/^\(\*([^)]*)\):(prefix|main|postfix)\s*(\+=|=)\s*(.*)$/);
     if(!match)throw Error(lineNumber+"행: 웹 미리보기 미지원 규칙 — "+line);
     const [,needle,target,operator,value]=match;
-    const tags=[...context.prefix,...context.main,...context.postfix].flatMap(text=>text.split(",").map(tag=>tag.trim()));
+    const tags=[...context.prefix,...context.main,...context.postfix].flatMap(splitTagsSmart);
     if(!tags.includes(needle.trim()))continue;
     const expanded=expand(value);
     if(operator==="=")context[target]=[expanded];
