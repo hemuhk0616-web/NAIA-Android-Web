@@ -37,6 +37,8 @@ assert.match(x.result,/PREFIX: hello/);
 assert.match(x.result,/POSTFIX: world/);
 x=run("standing","(*standing):main=changed");
 assert.match(x.result,/MAIN: changed/);
+x=run("__missing__","");
+assert.match(x.status,/등록되지 않은 와일드카드: missing/);
 x=run("standing","unsupported rule");
 assert.match(x.status,/미지원 규칙/);
 element("main").value="saved prompt";
