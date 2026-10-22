@@ -40,7 +40,7 @@ function applyRules(main, source){
     if(!match)throw Error(lineNumber+"행: 웹 미리보기 미지원 규칙 — "+line);
     const [,needle,target,operator,value]=match;
     const tags=[...context.prefix,...context.main,...context.postfix].flatMap(splitTagsSmart);
-    if(!tags.includes(needle.trim()))continue;
+    if(needle.trim()&&!tags.includes(needle.trim()))continue;
     const expanded=expand(value);
     if(operator==="=")context[target]=[expanded];
     else context[target].push(expanded);
