@@ -72,6 +72,20 @@ x=run("standing","(*char_in(2, pink hair & blue eyes)):prefix+=second-match");
 assert.match(x.result,/PREFIX: second-match/);
 x=run("standing","(*char_in(1, pink hair)):prefix+=wrong-slot");
 assert.doesNotMatch(x.result,/PREFIX: wrong-slot/);
+// Locked candidates must be reproducible across previews.
+element("wildcard-name").value="test/choice";
+element("wildcard-lines").value="first\nsecond";
+element("wildcard-save").click();
+element("wildcard-locks").value="test/choice=2";
+x=run("__test/choice__","");
+assert.match(x.result,/MAIN: second/);
+x=run("__test/choice__","");
+assert.match(x.result,/MAIN: second/);
+assert.match(element("wildcard-trace").textContent,/test\/choice \[2\/2\]/);
+element("wildcard-locks").value="test/choice=3";
+x=run("__test/choice__","");
+assert.match(x.status,/후보 고정 번호 범위 오류/);
+element("wildcard-locks").value="";
 // Character wildcards must resolve before character-specific conditions.
 element("wildcard-name").value="character/hair";
 element("wildcard-lines").value="pink hair";
