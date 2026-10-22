@@ -169,3 +169,17 @@ el("batch-copy").addEventListener("click",async()=>{
   try{await navigator.clipboard.writeText(el("batch-results").textContent);el("status").textContent="일괄 결과 복사 완료";}
   catch(e){el("status").textContent="일괄 결과 복사 실패: "+e.message;}
 });
+
+el("wildcard-export").addEventListener("click",()=>{
+  try{
+    const key=wildcardKey();
+    if(!entries.has(key))throw Error("등록된 와일드카드가 없습니다");
+    const text=entries.get(key).join("\n")+"\n";
+    const blob=new Blob([text],{type:"text/plain;charset=utf-8"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;a.download=key.replace(/\//g,"__")+".txt";a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    el("status").textContent=key+" TXT 내보내기 완료";
+  }catch(e){el("status").textContent="TXT 내보내기 오류: "+e.message;}
+});
