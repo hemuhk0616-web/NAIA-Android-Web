@@ -82,6 +82,11 @@ assert.match(x.result,/MAIN: second/);
 x=run("__test/choice__","");
 assert.match(x.result,/MAIN: second/);
 assert.match(element("wildcard-trace").textContent,/test\/choice \[2\/2\]/);
+assert.equal(element("wildcard-trace-actions").children.length>0,true);
+element("wildcard-locks").value="";
+element("wildcard-trace-actions").children.find(button=>button.textContent.includes("test/choice")).click();
+assert.equal(element("wildcard-locks").value,"test/choice=2");
+
 element("wildcard-locks").value="test/choice=3";
 x=run("__test/choice__","");
 assert.match(x.status,/후보 고정 번호 범위 오류/);
