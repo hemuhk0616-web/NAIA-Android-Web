@@ -34,6 +34,7 @@ function splitTagsSmart(text){
 function evaluateCondition(source,tags,lineNumber){
   if(!source.trim())return true;
   const tokens=source.match(/<[^>]*>|&&|\|\||[()!]|[^\s()!&|]+/g)||[];
+  if(tokens.join("").replace(/\s/g,"")!==source.replace(/\s/g,""))throw Error(lineNumber+"행: 조건식 문법 오류 — "+source);
   let i=0;
   const error=()=>{throw Error(lineNumber+"행: 조건식 문법 오류 — "+source);};
   function atom(){
