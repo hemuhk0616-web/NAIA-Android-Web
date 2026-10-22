@@ -118,7 +118,7 @@ el("settings-file").addEventListener("change",async event=>{
     updateList();persistWildcards();el("status").textContent="설정 JSON 가져오기 완료";
   }catch(e){el("status").textContent="설정 가져오기 실패: "+e.message;}
 });
-updateList();
+restoreWildcards();updateList();
 
 function wildcardKey(){
   const key=el("wildcard-name").value.trim().replace(/\\/g,"/");
