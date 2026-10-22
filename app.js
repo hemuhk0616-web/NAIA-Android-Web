@@ -183,3 +183,16 @@ el("wildcard-export").addEventListener("click",()=>{
     el("status").textContent=key+" TXT 내보내기 완료";
   }catch(e){el("status").textContent="TXT 내보내기 오류: "+e.message;}
 });
+
+el("batch-export").addEventListener("click",()=>{
+  try{
+    const output=el("batch-results").textContent;
+    if(!/^\[1\]\n/.test(output))throw Error("먼저 일괄 생성을 실행하세요");
+    const blob=new Blob([output+"\n"],{type:"text/plain;charset=utf-8"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;a.download="naia-batch-prompts.txt";a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    el("status").textContent="일괄 결과 TXT 내보내기 완료";
+  }catch(e){el("status").textContent="일괄 결과 내보내기 오류: "+e.message;}
+});
