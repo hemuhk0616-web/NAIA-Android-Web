@@ -109,7 +109,7 @@ el("copy").addEventListener("click",async()=>{try{if(!el("result").textContent.s
 
 const STORAGE_KEY="naia-web-draft-v1";
 const LIBRARY_KEY="naia-web-wildcards-v1";
-function persistWildcards(){try{localStorage.setItem(LIBRARY_KEY,JSON.stringify(Object.fromEntries(entries)));return true;}catch(e){el("status").textContent="와일드카드 자동 저장 실패: "+e.message;return false;}}
+function persistWildcards(){try{localStorage.setItem(LIBRARY_KEY,JSON.stringify(Object.fromEntries(entries)));return true;}catch(e){el("status").textContent="와일드카드 자동 저장 실패: "+e.message+" · 현재 변경사항은 이 탭에서만 유지됩니다. JSON으로 백업하세요.";return false;}}
 function restoreWildcards(){try{const saved=JSON.parse(localStorage.getItem(LIBRARY_KEY)||"null");if(saved&&typeof saved==="object"&&!Array.isArray(saved)){entries.clear();for(const [key,lines] of Object.entries(saved)){if(/^[\p{L}\p{N}_.\/-]+$/u.test(key)&&!key.split("/").some(part=>!part||part==="."||part==="..")&&Array.isArray(lines)&&lines.every(x=>typeof x==="string"))entries.set(key,lines);}}}catch(e){console.warn("와일드카드 저장본 읽기 실패",e);}}
 function updateList(){
   el("loaded").textContent="와일드카드 "+entries.size+"개: "+Array.from(entries.keys()).join(", ");
@@ -156,6 +156,7 @@ async function importFiles(files){
     imported.push([key,lines]);
     count++;
   }
+  const previous=new Map(entries);
   for(const [key,lines] of imported)entries.set(key,lines);
   updateList();if(persistWildcards())el("status").textContent=count+"개 와일드카드 가져오기 완료 (브라우저에 자동 저장됨)";
 }
