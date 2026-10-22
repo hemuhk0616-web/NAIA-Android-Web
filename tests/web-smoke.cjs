@@ -59,6 +59,8 @@ assert.equal(JSON.parse(local.get("naia-web-wildcards-v1"))["test/nested"].lengt
 element("wildcard-lines").value="";
 element("wildcard-load").click();
 assert.equal(element("wildcard-lines").value,"alpha\nbeta");
+x=run("__nested__","");
+assert.match(x.result,/MAIN: (alpha|beta)/);
 element("main").value="__test/nested__";
 element("rule").value="";
 element("batch-count").value="3";
