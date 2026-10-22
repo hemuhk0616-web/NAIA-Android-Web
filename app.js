@@ -50,7 +50,7 @@ function conditionTagVariants(tag){
   if(plain.startsWith("(")&&plain.endsWith(")"))result.push(plain.slice(1,-1).trim());
   return result;
 }
-function evaluateCondition(source,tags,lineNumber){
+function evaluateCondition(source,tags,lineNumber,characterSlots=[]){
   if(!source.trim())return true;
   const tokens=[];
   let buffer="",angle=0,quote="";
@@ -93,6 +93,12 @@ function evaluateCondition(source,tags,lineNumber){
     if(!needle)error();
     const rating=needle.match(/^rating\s*\(\s*([eqsg])\s*(?:,\s*source\s*=\s*[^)]*)?\)$/i);
     if(rating)throw Error(lineNumber+"행: rating()은 이미지 평가 정보가 없어 웹 미리보기에서 판정할 수 없습니다 — "+needle);
+    const charOn=needle.match(/^char_on\s*\(\s*(\d+)\s*\)$/i);
+    if(charOn){
+      const slot=Number(charOn[1]);
+      if(slot!==1)throw Error(lineNumber+"행: 웹 미리보기는 캐릭터 1 슬롯만 지원합니다 — "+needle);
+      return Boolean(characterSlots[0]?.trim());
+    }
     if(/^(?:rating|char_in|char_on)\s*\(/i.test(needle))throw Error(lineNumber+"행: 원본 NAIA 조건 함수는 웹 미리보기에서 미지원 — "+needle);
     const found=exact||exactNot?variants.includes(needle):variants.some(tag=>tag.includes(needle));
     return exactNot||containsNot?!found:found;
@@ -101,7 +107,7 @@ function evaluateCondition(source,tags,lineNumber){
   function or(){let v=and();while(tokens[i]==="||"||tokens[i]==="|"){i++;const rhs=and();v=v||rhs;}return v;}
   const result=or();if(i!==tokens.length)error();return result;
 }
-function applyRules(main, source){
+function applyRules(main, source,characterSlots=[]){
   const context={prefix:[],main:[main],postfix:[]};
   const rules=source.split(/\r?\n/).map((text,index)=>({text:text.trim(),line:index+1})).filter(x=>x.text&&!x.text.startsWith("#"));
   for(let i=0;i<rules.length;i++){
@@ -110,7 +116,7 @@ function applyRules(main, source){
     if(!match)throw Error(lineNumber+"행: 웹 미리보기 미지원 규칙 — "+line);
     const [,needle,target,operator,value]=match;
     const tags=[...context.prefix,...context.main,...context.postfix].flatMap(splitTagsSmart);
-    if(!evaluateCondition(needle,tags,lineNumber))continue;
+    if(!evaluateCondition(needle,tags,lineNumber,characterSlots))continue;
     const expanded=expand(value);
     if(operator==="=")context[target]=[expanded];
     else context[target].push(expanded);
@@ -120,7 +126,7 @@ function applyRules(main, source){
 function preview(){
   try{
     const main=expand(el("main").value);
-    const result=applyRules(main,el("rule").value);
+    const result=applyRules(main,el("rule").value,[el("character-1").value]);
     count++;
     el("result").textContent="PREFIX: "+result.prefix.join(", ")+"\nMAIN: "+result.main.join(", ")+"\nPOSTFIX: "+result.postfix.join(", ");
     el("status").textContent="미리보기 실행 "+count+"회 · 브라우저 부분 호환 엔진";
