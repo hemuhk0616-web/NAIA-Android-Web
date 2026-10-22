@@ -16,11 +16,11 @@ function expand(text, depth=0, stack=[]) {
 }
 function applyRules(main, source){
   const context={prefix:[],main:[main],postfix:[]};
-  const rules=source.split(/\r?\n/).map(x=>x.trim()).filter(x=>x&&!x.startsWith("#"));
+  const rules=source.split(/\r?\n/).map((text,index)=>({text:text.trim(),line:index+1})).filter(x=>x.text&&!x.text.startsWith("#"));
   for(let i=0;i<rules.length;i++){
-    const line=rules[i];
+    const {text:line,line:lineNumber}=rules[i];
     const match=line.match(/^\(\*([^)]*)\):(prefix|main|postfix)\s*(\+=|=)\s*(.*)$/);
-    if(!match)throw Error((i+1)+"행: 웹 미리보기 미지원 규칙 — "+line);
+    if(!match)throw Error(lineNumber+"행: 웹 미리보기 미지원 규칙 — "+line);
     const [,needle,target,operator,value]=match;
     if(!context.main.join(", ").includes(needle))continue;
     const expanded=expand(value);
@@ -44,7 +44,7 @@ el("copy").addEventListener("click",async()=>{try{await navigator.clipboard.writ
 const STORAGE_KEY="naia-web-draft-v1";
 const LIBRARY_KEY="naia-web-wildcards-v1";
 function persistWildcards(){try{localStorage.setItem(LIBRARY_KEY,JSON.stringify(Object.fromEntries(entries)));}catch(e){el("status").textContent="와일드카드 자동 저장 실패: "+e.message;}}
-function restoreWildcards(){try{const saved=JSON.parse(localStorage.getItem(LIBRARY_KEY)||"null");if(saved&&typeof saved==="object"&&!Array.isArray(saved)){for(const [key,lines] of Object.entries(saved)){if(Array.isArray(lines)&&lines.every(x=>typeof x==="string"))entries.set(key,lines);}}}catch(e){console.warn("와일드카드 저장본 읽기 실패",e);}}
+function restoreWildcards(){try{const saved=JSON.parse(localStorage.getItem(LIBRARY_KEY)||"null");if(saved&&typeof saved==="object"&&!Array.isArray(saved)){for(const [key,lines] of Object.entries(saved)){if(/^[\p{L}\p{N}_.\/-]+$/u.test(key)&&!key.split("/").some(part=>!part||part==="."||part==="..")&&Array.isArray(lines)&&lines.every(x=>typeof x==="string"))entries.set(key,lines);}}}catch(e){console.warn("와일드카드 저장본 읽기 실패",e);}}
 function updateList(){
   el("loaded").textContent="와일드카드 "+entries.size+"개: "+Array.from(entries.keys()).join(", ");
   el("wildcards").textContent="";
@@ -83,13 +83,13 @@ async function importFiles(files){
     if(!file.name.toLowerCase().endsWith(".txt"))continue;
     const raw=file.webkitRelativePath||file.name;
     const key=raw.replace(/\\/g,"/").replace(/\.txt$/i,"").replace(/^[^/]+\//,"");
-    if(!key||key.split("/").some(part=>part==="."||part===".."))continue;
+    if(!key||!/^[\p{L}\p{N}_.\/-]+$/u.test(key)||key.split("/").some(part=>!part||part==="."||part===".."))continue;
     const lines=(await file.text()).split(/\r?\n/).map(s=>s.trim()).filter(s=>s&&!s.startsWith("#"));
     entries.set(key,lines);
     count++;
   }
   updateList();persistWildcards();
-  el("status").textContent=count+"개 와일드카드 가져오기 완료 (현재 브라우저 메모리)";
+  el("status").textContent=count+"개 와일드카드 가져오기 완료 (브라우저에 자동 저장됨)";
 }
 el("files").addEventListener("change",event=>importFiles(Array.from(event.target.files||[])));
 el("folder").addEventListener("change",event=>importFiles(Array.from(event.target.files||[])));
@@ -110,7 +110,7 @@ el("settings-file").addEventListener("change",async event=>{
     if(data.format!=="naia-web-v1"||typeof data.main!=="string"||typeof data.rule!=="string"||!data.wildcards||typeof data.wildcards!=="object"||Array.isArray(data.wildcards))throw Error("지원하지 않는 설정 형식");
     const imported=new Map();
     for(const [key,lines] of Object.entries(data.wildcards)){
-      if(!key||key==="__proto__"||!Array.isArray(lines)||!lines.every(x=>typeof x==="string"))throw Error("와일드카드 형식 오류");
+      if(!key||!/^[\p{L}\p{N}_.\/-]+$/u.test(key)||key.split("/").some(part=>!part||part==="."||part==="..")||!Array.isArray(lines)||!lines.every(x=>typeof x==="string"))throw Error("와일드카드 형식 오류");
       imported.set(key,lines);
     }
     el("main").value=data.main;el("rule").value=data.rule;
@@ -122,7 +122,7 @@ restoreWildcards();updateList();
 
 function wildcardKey(){
   const key=el("wildcard-name").value.trim().replace(/\\/g,"/");
-  if(!key||! /^[a-zA-Z0-9가-힣_.\/-]+$/.test(key)||key.split("/").some(x=>!x||x==="."||x===".."))throw Error("와일드카드 이름이 올바르지 않습니다");
+  if(!key||! /^[\p{L}\p{N}_.\/-]+$/u.test(key)||key.split("/").some(x=>!x||x==="."||x===".."))throw Error("와일드카드 이름이 올바르지 않습니다");
   return key;
 }
 el("wildcard-load").addEventListener("click",()=>{
@@ -160,7 +160,10 @@ el("batch-run").addEventListener("click",()=>{
     const amount=Number(el("batch-count").value);
     if(!Number.isInteger(amount)||amount<1||amount>30)throw Error("생성 횟수는 1~30 사이 정수여야 합니다");
     const results=[];
-    for(let i=0;i<amount;i++)results.push("["+String(i+1)+"]\n"+generateOnce());
+    for(let i=0;i<amount;i++){
+      try{results.push("["+String(i+1)+"]\n"+generateOnce());}
+      catch(e){throw Error((i+1)+"번째 생성 실패: "+e.message);}
+    }
     el("batch-results").textContent=results.join("\n\n");
     el("status").textContent=amount+"개 생성 완료";
   }catch(e){el("batch-results").textContent="생성 실패 — "+e.message;el("status").textContent="일괄 생성 오류: "+e.message;}
