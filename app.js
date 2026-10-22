@@ -28,7 +28,7 @@ function applyRules(main, source){
     const match=line.match(/^\(\*([^)]*)\):(prefix|main|postfix)\s*(\+=|=)\s*(.*)$/);
     if(!match)throw Error(lineNumber+"행: 웹 미리보기 미지원 규칙 — "+line);
     const [,needle,target,operator,value]=match;
-    if(!context.main.join(", ").includes(needle))continue;
+    if(![...context.prefix,...context.main,...context.postfix].join(", ").includes(needle))continue;
     const expanded=expand(value);
     if(operator==="=")context[target]=[expanded];
     else context[target].push(expanded);
