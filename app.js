@@ -51,7 +51,7 @@ el("copy").addEventListener("click",async()=>{try{if(!el("result").textContent.s
 const STORAGE_KEY="naia-web-draft-v1";
 const LIBRARY_KEY="naia-web-wildcards-v1";
 function persistWildcards(){try{localStorage.setItem(LIBRARY_KEY,JSON.stringify(Object.fromEntries(entries)));}catch(e){el("status").textContent="와일드카드 자동 저장 실패: "+e.message;}}
-function restoreWildcards(){try{const saved=JSON.parse(localStorage.getItem(LIBRARY_KEY)||"null");if(saved&&typeof saved==="object"&&!Array.isArray(saved)){for(const [key,lines] of Object.entries(saved)){if(/^[\p{L}\p{N}_.\/-]+$/u.test(key)&&!key.split("/").some(part=>!part||part==="."||part==="..")&&Array.isArray(lines)&&lines.every(x=>typeof x==="string"))entries.set(key,lines);}}}catch(e){console.warn("와일드카드 저장본 읽기 실패",e);}}
+function restoreWildcards(){try{const saved=JSON.parse(localStorage.getItem(LIBRARY_KEY)||"null");if(saved&&typeof saved==="object"&&!Array.isArray(saved)){entries.clear();for(const [key,lines] of Object.entries(saved)){if(/^[\p{L}\p{N}_.\/-]+$/u.test(key)&&!key.split("/").some(part=>!part||part==="."||part==="..")&&Array.isArray(lines)&&lines.every(x=>typeof x==="string"))entries.set(key,lines);}}}catch(e){console.warn("와일드카드 저장본 읽기 실패",e);}}
 function updateList(){
   el("loaded").textContent="와일드카드 "+entries.size+"개: "+Array.from(entries.keys()).join(", ");
   el("wildcards").textContent="";
