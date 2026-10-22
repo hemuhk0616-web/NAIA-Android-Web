@@ -3,6 +3,22 @@
 const entries = new Map([["pose",["standing"]],["face",["smile"]]]);
 const el = id => document.getElementById(id);
 let count=0;
+let candidateLocks=new Map();
+function parseCandidateLocks(source){
+  const locks=new Map();
+  for(const [i,raw] of source.split(/\r?\n/).entries()){
+    const line=raw.trim();if(!line||line.startsWith("#"))continue;
+    const match=line.match(/^([\p{L}\p{N}_.\/-]+)\s*=\s*(\d+)$/u);
+    if(!match)throw Error("후보 고정 "+(i+1)+"행 형식 오류: "+line);
+    const key=resolveWildcard(match[1]);
+    if(!key)throw Error("후보 고정에 없는 와일드카드: "+match[1]);
+    const index=Number(match[2]);
+    if(!Number.isSafeInteger(index)||index<1||index>entries.get(key).length)throw Error("후보 고정 번호 범위 오류: "+key+"="+match[2]);
+    if(locks.has(key))throw Error("후보 고정 중복: "+key);
+    locks.set(key,index-1);
+  }
+  return locks;
+}
 function resolveWildcard(name){
   if(entries.has(name))return name;
   for(const key of entries.keys())if(key.endsWith("/"+name))return key;
@@ -16,7 +32,8 @@ function expand(text, depth=0, stack=[], trace=null, source="메인") {
     if(stack.includes(key))throw Error("와일드카드 순환 참조: "+[...stack,key].join(" → "));
     const values=entries.get(key);
     if(!values.length)return "";
-    const index=Math.floor(Math.random()*values.length);
+    const index=candidateLocks.has(key)?candidateLocks.get(key):Math.floor(Math.random()*values.length);
+    if(index>=values.length)throw Error("고정 후보가 현재 목록 범위를 벗어났습니다: "+key);
     const selected=values[index];
     if(trace)trace.push({source,key,index:index+1,total:values.length,value:selected});
     return expand(selected,depth+1,[...stack,key],trace,source);
@@ -135,6 +152,7 @@ function applyRules(main, source,characterSlots=[],trace=null){
 }
 function preview(){
   try{
+    candidateLocks=parseCandidateLocks(el("wildcard-locks").value);
     const trace=[];
     const main=expand(el("main").value,0,[],trace,"메인");
     const characterSlots=[expand(el("character-1").value,0,[],trace,"캐릭터 1"),expand(el("character-2").value,0,[],trace,"캐릭터 2")];
