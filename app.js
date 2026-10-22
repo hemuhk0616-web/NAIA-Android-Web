@@ -91,6 +91,8 @@ function evaluateCondition(source,tags,lineNumber){
     const raw=(exactNot?t.slice(2):(containsNot||exact?t.slice(1):t)).trim();
     const needle=((raw.startsWith('"')&&raw.endsWith('"'))||(raw.startsWith("'")&&raw.endsWith("'"))?raw.slice(1,-1):raw).trim();
     if(!needle)error();
+    const rating=needle.match(/^rating\s*\(\s*([eqsg])\s*(?:,\s*source\s*=\s*[^)]*)?\)$/i);
+    if(rating)throw Error(lineNumber+"행: rating()은 이미지 평가 정보가 없어 웹 미리보기에서 판정할 수 없습니다 — "+needle);
     if(/^(?:rating|char_in|char_on)\s*\(/i.test(needle))throw Error(lineNumber+"행: 원본 NAIA 조건 함수는 웹 미리보기에서 미지원 — "+needle);
     const found=exact||exactNot?variants.includes(needle):variants.some(tag=>tag.includes(needle));
     return exactNot||containsNot?!found:found;
