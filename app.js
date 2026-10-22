@@ -169,6 +169,20 @@ function renderTraceActions(trace){
       }catch(error){el("status").textContent="후보 고정 실패: "+error.message;}
     });
     target.appendChild(button);
+    if(candidateLocks.has(item.key)){
+      const unlock=document.createElement("button");
+      unlock.type="button";unlock.className="secondary";
+      unlock.textContent=item.key+" 고정 해제";
+      unlock.addEventListener("click",()=>{
+        try{
+          const locks=parseCandidateLocks(el("wildcard-locks").value);
+          locks.delete(item.key);
+          el("wildcard-locks").value=Array.from(locks,([key,index])=>key+"="+(index+1)).join("\n");
+          el("status").textContent=item.key+" 후보 고정 해제 완료 · 미리보기를 다시 실행하세요";
+        }catch(error){el("status").textContent="고정 해제 실패: "+error.message;}
+      });
+      target.appendChild(unlock);
+    }
   }
 }
 function preview(){
