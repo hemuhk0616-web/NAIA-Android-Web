@@ -146,4 +146,11 @@ element("wildcard-save").click();
 assert.match(element("status").textContent,/자동 저장 실패/);
 assert.match(element("status").textContent,/JSON으로 백업/);
 ctx.localStorage.setItem=originalSetItem;
+// A failed JSON backup must not be presented as a successful download.
+const originalCreateObjectURL=ctx.URL.createObjectURL;
+ctx.URL.createObjectURL=()=>{throw Error("download blocked");};
+element("export").click();
+assert.match(element("status").textContent,/설정 JSON 내보내기 실패/);
+assert.match(element("status").textContent,/download blocked/);
+ctx.URL.createObjectURL=originalCreateObjectURL;
 console.log("Web editor smoke tests passed.");
