@@ -53,7 +53,7 @@ function updateList(){
     button.textContent=key+" ("+lines.length+"줄)";
     button.addEventListener("click",()=>{
       el("wildcard-name").value=key;
-      el("wildcard-lines").value=lines.join("\\n");
+      el("wildcard-lines").value=lines.join("\n");
       el("status").textContent=key+" 편집 준비 완료";
     });
     picker.appendChild(button);
