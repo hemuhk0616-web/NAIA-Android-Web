@@ -235,5 +235,5 @@ el("batch-export").addEventListener("click",()=>{
     setTimeout(()=>URL.revokeObjectURL(url),1000);
     el("status").textContent="일괄 결과 TXT 내보내기 완료";
   }catch(e){el("status").textContent="일괄 결과 내보내기 오류: "+e.message;}
-});    const matched=evaluateCondition(needle,tags,lineNumber);
+});
 
