@@ -40,7 +40,14 @@ function applyRules(main, source){
     if(!match)throw Error(lineNumber+"행: 웹 미리보기 미지원 규칙 — "+line);
     const [,needle,target,operator,value]=match;
     const tags=[...context.prefix,...context.main,...context.postfix].flatMap(splitTagsSmart);
-    if(needle.trim()&&!tags.includes(needle.trim()))continue;
+    const condition=needle.trim();
+    const matched=condition===""||condition.split(/\s*\|\|\s*/).some(group=>group.split(/\s*&&\s*/).every(term=>{
+      const negated=term.startsWith("!");
+      const tag=(negated?term.slice(1):term).trim();
+      if(!tag)throw Error(lineNumber+"행: 빈 조건 항목");
+      return negated?!tags.includes(tag):tags.includes(tag);
+    }));
+    if(!matched)continue;
     const expanded=expand(value);
     if(operator==="=")context[target]=[expanded];
     else context[target].push(expanded);
