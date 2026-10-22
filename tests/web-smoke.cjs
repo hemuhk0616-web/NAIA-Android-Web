@@ -93,4 +93,6 @@ element("wildcard-delete").click();
 assert.equal(element("wildcard-picker").children.some(x=>x.textContent.includes("test/nested")),false);
 vm.runInContext('entries.clear();restoreWildcards();updateList()',ctx);
 assert.equal(element("wildcard-picker").children.some(x=>x.textContent.includes("pose")),true);
+vm.runInContext('entries.delete("pose");persistWildcards();entries.clear();restoreWildcards();updateList()',ctx);
+assert.equal(element("wildcard-picker").children.some(x=>x.textContent.includes("pose")),false);
 console.log("Web editor smoke tests passed.");
