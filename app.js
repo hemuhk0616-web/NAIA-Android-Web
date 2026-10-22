@@ -163,7 +163,7 @@ el("batch-run").addEventListener("click",()=>{
     for(let i=0;i<amount;i++)results.push("["+String(i+1)+"]\n"+generateOnce());
     el("batch-results").textContent=results.join("\n\n");
     el("status").textContent=amount+"개 생성 완료";
-  }catch(e){el("status").textContent="일괄 생성 오류: "+e.message;}
+  }catch(e){el("batch-results").textContent="생성 실패 — "+e.message;el("status").textContent="일괄 생성 오류: "+e.message;}
 });
 el("batch-copy").addEventListener("click",async()=>{
   try{await navigator.clipboard.writeText(el("batch-results").textContent);el("status").textContent="일괄 결과 복사 완료";}
