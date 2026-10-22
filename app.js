@@ -149,3 +149,23 @@ el("wildcard-delete").addEventListener("click",()=>{
     el("status").textContent=key+" 삭제 완료";
   }catch(e){el("status").textContent="오류: "+e.message;}
 });
+
+function generateOnce(){
+  const main=expand(el("main").value);
+  const result=applyRules(main,el("rule").value);
+  return ["PREFIX: "+result.prefix.join(", "),"MAIN: "+result.main.join(", "),"POSTFIX: "+result.postfix.join(", ")].join("\n");
+}
+el("batch-run").addEventListener("click",()=>{
+  try{
+    const amount=Number(el("batch-count").value);
+    if(!Number.isInteger(amount)||amount<1||amount>30)throw Error("생성 횟수는 1~30 사이 정수여야 합니다");
+    const results=[];
+    for(let i=0;i<amount;i++)results.push("["+String(i+1)+"]\n"+generateOnce());
+    el("batch-results").textContent=results.join("\n\n");
+    el("status").textContent=amount+"개 생성 완료";
+  }catch(e){el("status").textContent="일괄 생성 오류: "+e.message;}
+});
+el("batch-copy").addEventListener("click",async()=>{
+  try{await navigator.clipboard.writeText(el("batch-results").textContent);el("status").textContent="일괄 결과 복사 완료";}
+  catch(e){el("status").textContent="일괄 결과 복사 실패: "+e.message;}
+});
