@@ -150,6 +150,27 @@ function applyRules(main, source,characterSlots=[],trace=null){
   }
   return context;
 }
+function renderTraceActions(trace){
+  const target=el("wildcard-trace-actions");
+  target.replaceChildren();
+  const seen=new Set();
+  for(const item of trace){
+    if(seen.has(item.key))continue;
+    seen.add(item.key);
+    const button=document.createElement("button");
+    button.type="button";button.className="secondary";
+    button.textContent=item.key+" #"+item.index+" 고정";
+    button.addEventListener("click",()=>{
+      try{
+        const locks=parseCandidateLocks(el("wildcard-locks").value);
+        locks.set(item.key,item.index-1);
+        el("wildcard-locks").value=Array.from(locks,([key,index])=>key+"="+(index+1)).join("\n");
+        el("status").textContent=item.key+" 후보 "+item.index+" 고정 완료 · 미리보기를 다시 실행하세요";
+      }catch(error){el("status").textContent="후보 고정 실패: "+error.message;}
+    });
+    target.appendChild(button);
+  }
+}
 function preview(){
   try{
     candidateLocks=parseCandidateLocks(el("wildcard-locks").value);
@@ -161,8 +182,9 @@ function preview(){
     el("result").textContent="PREFIX: "+result.prefix.join(", ")+"\nMAIN: "+result.main.join(", ")+"\nPOSTFIX: "+result.postfix.join(", ");
     el("character-results").textContent=characterSlots.map((value,index)=>"캐릭터 "+(index+1)+": "+(value||"(비어 있음)")).join("\n");
     el("wildcard-trace").textContent=trace.length?trace.map(item=>item.source+" · "+item.key+" ["+item.index+"/"+item.total+"] → "+item.value).join("\n"):"선택된 와일드카드 없음";
+    renderTraceActions(trace);
     el("status").textContent="미리보기 실행 "+count+"회 · 브라우저 부분 호환 엔진";
-  }catch(error){el("result").textContent="미리보기 실패: "+error.message;el("character-results").textContent="미리보기 실패: "+error.message;el("wildcard-trace").textContent="미리보기 실패: "+error.message;el("status").textContent="오류: "+error.message;}
+  }catch(error){el("result").textContent="미리보기 실패: "+error.message;el("character-results").textContent="미리보기 실패: "+error.message;el("wildcard-trace").textContent="미리보기 실패: "+error.message;el("wildcard-trace-actions").replaceChildren();el("status").textContent="오류: "+error.message;}
 }
 el("preview").addEventListener("click",preview);
 el("copy").addEventListener("click",async()=>{try{if(!el("result").textContent.startsWith("PREFIX: "))throw Error("먼저 미리보기를 실행하세요");await navigator.clipboard.writeText(el("result").textContent);el("status").textContent="결과 복사 완료";}catch{el("status").textContent="복사 실패: 브라우저 권한을 확인하세요";}});
