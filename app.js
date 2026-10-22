@@ -36,7 +36,7 @@ function preview(){
     count++;
     el("result").textContent="PREFIX: "+result.prefix.join(", ")+"\nMAIN: "+result.main.join(", ")+"\nPOSTFIX: "+result.postfix.join(", ");
     el("status").textContent="미리보기 실행 "+count+"회 · 브라우저 부분 호환 엔진";
-  }catch(error){el("status").textContent="오류: "+error.message;}
+  }catch(error){el("result").textContent="미리보기 실패: "+error.message;el("status").textContent="오류: "+error.message;}
 }
 el("preview").addEventListener("click",preview);
 el("copy").addEventListener("click",async()=>{try{await navigator.clipboard.writeText(el("result").textContent);el("status").textContent="결과 복사 완료";}catch{el("status").textContent="복사 실패: 브라우저 권한을 확인하세요";}});
