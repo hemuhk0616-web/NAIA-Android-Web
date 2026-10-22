@@ -5,7 +5,9 @@ const assert=require("node:assert/strict");
 const elements=new Map();
 function element(id){
   if(!elements.has(id))elements.set(id,{
-    value:"",textContent:"",files:[],handlers:{},
+    value:"",textContent:"",files:[],handlers:{},children:[],
+    replaceChildren(...nodes){this.children=nodes;},
+    appendChild(node){this.children.push(node);},
     addEventListener(type,fn){this.handlers[type]=fn;},
     click(){this.handlers.click?.();},
   });
@@ -13,7 +15,7 @@ function element(id){
 }
 const local=new Map();
 const ctx={
-  document:{getElementById:element,createElement:()=>({click(){},set href(x){},set download(x){}})},
+  document:{getElementById:element,createElement:()=>({textContent:"",className:"",type:"",handlers:{},addEventListener(type,fn){this.handlers[type]=fn;},click(){this.handlers.click?.();},set href(x){},set download(x){}})},
   localStorage:{getItem:k=>local.get(k)||null,setItem:(k,v)=>local.set(k,v)},
   navigator:{clipboard:{writeText:async()=>{}}},
   URL:{createObjectURL:()=> "blob:test",revokeObjectURL:()=>{}},
