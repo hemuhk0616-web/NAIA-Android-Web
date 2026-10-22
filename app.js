@@ -164,11 +164,17 @@ el("folder").addEventListener("change",event=>importFiles(Array.from(event.targe
 el("save").addEventListener("click",saveDraft);
 el("restore").addEventListener("click",restoreDraft);
 el("export").addEventListener("click",()=>{
-  const data={format:"naia-web-v1",main:el("main").value,rule:el("rule").value,wildcards:Object.fromEntries(entries)};
-  const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));
-  const a=document.createElement("a");a.href=url;a.download="naia-web-settings.json";a.click();
-  setTimeout(()=>URL.revokeObjectURL(url),1000);
-  el("status").textContent="설정 JSON 내보내기 완료";
+  let url=null;
+  try{
+    const data={format:"naia-web-v1",main:el("main").value,rule:el("rule").value,wildcards:Object.fromEntries(entries)};
+    url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));
+    const a=document.createElement("a");a.href=url;a.download="naia-web-settings.json";a.click();
+    el("status").textContent="설정 JSON 다운로드 요청 완료 · 다운로드 폴더를 확인하세요";
+  }catch(e){
+    el("status").textContent="설정 JSON 내보내기 실패: "+e.message;
+  }finally{
+    if(url!==null)setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
 });
 el("settings-file").addEventListener("change",async event=>{
   const file=event.target.files?.[0];if(!file)return;
