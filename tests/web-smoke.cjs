@@ -153,4 +153,23 @@ element("export").click();
 assert.match(element("status").textContent,/설정 JSON 내보내기 실패/);
 assert.match(element("status").textContent,/download blocked/);
 ctx.URL.createObjectURL=originalCreateObjectURL;
-console.log("Web editor smoke tests passed.");
+// JSON import must restore both prompt fields and wildcard library.
+(async()=>{
+  const backup={format:"naia-web-v1",main:"restored prompt",rule:"(*):prefix+=ok",wildcards:{"restored/eyes":["blue eyes"]}};
+  await element("settings-file").handlers.change({target:{files:[{size:128,text:async()=>JSON.stringify(backup)}]}});
+  assert.equal(element("main").value,"restored prompt");
+  assert.equal(element("rule").value,"(*):prefix+=ok");
+  assert.equal(JSON.parse(local.get("naia-web-draft-v1")).main,"restored prompt");
+  assert.equal(JSON.parse(local.get("naia-web-wildcards-v1"))["restored/eyes"][0],"blue eyes");
+  // Simulate a failed draft write; old editor and library must remain intact.
+  const setItem=ctx.localStorage.setItem;
+  ctx.localStorage.setItem=(key,value)=>{if(key==="naia-web-draft-v1")throw Error("quota");return setItem(key,value);};
+  const bad={...backup,main:"must not replace",wildcards:{"new":["new"]}};
+  await element("settings-file").handlers.change({target:{files:[{size:128,text:async()=>JSON.stringify(bad)}]}});
+  assert.equal(element("main").value,"restored prompt");
+  assert.equal(JSON.parse(local.get("naia-web-wildcards-v1"))["restored/eyes"][0],"blue eyes");
+  assert.match(element("status").textContent,/설정 저장 실패/);
+  ctx.localStorage.setItem=setItem;
+  console.log("Web editor smoke tests passed.");
+})().catch(error=>{console.error(error);process.exitCode=1;});
+
