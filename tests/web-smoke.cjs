@@ -35,6 +35,8 @@ assert.match(x.result,/MAIN: 1girl, standing/);
 x=run("standing","(*standing):prefix+=hello\n(*standing):postfix+=world");
 assert.match(x.result,/PREFIX: hello/);
 assert.match(x.result,/POSTFIX: world/);
+x=run("standing","(*standing):prefix+=first\n(*first):postfix+=second");
+assert.match(x.result,/POSTFIX: second/);
 x=run("standing","(*standing):main=changed");
 assert.match(x.result,/MAIN: changed/);
 x=run("__missing__","");
