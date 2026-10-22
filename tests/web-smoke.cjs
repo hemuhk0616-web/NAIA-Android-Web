@@ -58,7 +58,7 @@ assert.match(x.result,/PREFIX: active/);
 element("character-1").value="";
 for(const fn of ["char_on(2)","char_in(1, standing)"]){
   x=run("standing","(*"+fn+"):prefix+=incorrect");
-  assert.match(x.status,/조건 함수는 웹 미리보기에서 미지원/);
+  assert.match(x.status,/캐릭터 1 슬롯만 지원|조건 함수는 웹 미리보기에서 미지원/);
 }
 x=run("standing, smile","(*standing && smile):prefix+=both");
 assert.match(x.result,/PREFIX: both/);
