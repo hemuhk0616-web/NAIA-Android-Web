@@ -3,8 +3,10 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'web/**'
-      - '.github/workflows/deploy-web.yml'
+      - 'index.html'
+      - 'style.css'
+      - 'app.js'
+      - '.github/workflows/deploy.yml'
 permissions:
   contents: read
   pages: write
