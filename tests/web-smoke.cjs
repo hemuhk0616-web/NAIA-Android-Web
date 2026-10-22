@@ -47,6 +47,10 @@ x=run("[red, blue], standing","(*red, blue):prefix+=bracket-comma");
 assert.match(x.result,/PREFIX: bracket-comma/);
 x=run('"red, blue", standing','(*red, blue):prefix+=quoted-comma');
 assert.match(x.result,/PREFIX: quoted-comma/);
+for(const fn of ["rating(e)","char_on(1)","char_in(1, standing)"]){
+  x=run("standing","(*"+fn+"):prefix+=incorrect");
+  assert.match(x.status,/조건 함수는 웹 미리보기에서 미지원/);
+}
 x=run("standing, smile","(*standing && smile):prefix+=both");
 assert.match(x.result,/PREFIX: both/);
 x=run("standing","(**standing && ~!smile):prefix+=only-standing");
