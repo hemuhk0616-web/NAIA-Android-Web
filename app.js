@@ -82,6 +82,7 @@ function evaluateCondition(source,tags,lineNumber){
     const raw=(exactNot?t.slice(2):(containsNot||exact?t.slice(1):t)).trim();
     const needle=((raw.startsWith('"')&&raw.endsWith('"'))||(raw.startsWith("'")&&raw.endsWith("'"))?raw.slice(1,-1):raw).trim();
     if(!needle)error();
+    if(/^(?:rating|char_in|char_on)\s*\(/i.test(needle))throw Error(lineNumber+"행: 원본 NAIA 조건 함수는 웹 미리보기에서 미지원 — "+needle);
     const found=exact||exactNot?variants.includes(needle):variants.some(tag=>tag.includes(needle));
     return exactNot||containsNot?!found:found;
   }
