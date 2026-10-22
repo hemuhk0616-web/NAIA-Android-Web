@@ -6,7 +6,7 @@ let count=0;
 function expand(text, depth=0, stack=[]) {
   if(depth>24) throw Error("와일드카드 중첩 제한(24단계)");
   return text.replace(/__([\w./-]+)__/g,(match,name)=>{
-    if(!entries.has(name))return match;
+    if(!entries.has(name))throw Error("등록되지 않은 와일드카드: "+name);
     if(stack.includes(name))throw Error("와일드카드 순환 참조: "+[...stack,name].join(" → "));
     const values=entries.get(name);
     if(!values.length)return "";
