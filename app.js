@@ -79,6 +79,7 @@ function restoreDraft(){
 }
 async function importFiles(files){
   let count=0;
+  const imported=[];
   for(const file of files){
     if(!file.name.toLowerCase().endsWith(".txt"))continue;
     const raw=file.webkitRelativePath||file.name;
@@ -86,9 +87,10 @@ async function importFiles(files){
     const key=file.webkitRelativePath?normalized.replace(/^[^/]+\//,""):normalized;
     if(!key||!/^[\p{L}\p{N}_.\/-]+$/u.test(key)||key.split("/").some(part=>!part||part==="."||part===".."))continue;
     const lines=(await file.text()).split(/\r?\n/).map(s=>s.trim()).filter(s=>s&&!s.startsWith("#"));
-    entries.set(key,lines);
+    imported.push([key,lines]);
     count++;
   }
+  for(const [key,lines] of imported)entries.set(key,lines);
   updateList();persistWildcards();
   el("status").textContent=count+"개 와일드카드 가져오기 완료 (브라우저에 자동 저장됨)";
 }
