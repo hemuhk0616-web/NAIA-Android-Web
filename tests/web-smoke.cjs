@@ -137,4 +137,13 @@ vm.runInContext('entries.clear();restoreWildcards();updateList()',ctx);
 assert.equal(element("wildcard-picker").children.some(x=>x.textContent.includes("pose")),true);
 vm.runInContext('entries.delete("pose");persistWildcards();entries.clear();restoreWildcards();updateList()',ctx);
 assert.equal(element("wildcard-picker").children.some(x=>x.textContent.includes("pose")),false);
+// Browser storage failures must not be reported as successful saves.
+const originalSetItem=ctx.localStorage.setItem;
+ctx.localStorage.setItem=()=>{throw Error("quota exceeded");};
+element("wildcard-name").value="storage-test";
+element("wildcard-lines").value="temporary";
+element("wildcard-save").click();
+assert.match(element("status").textContent,/자동 저장 실패/);
+assert.match(element("status").textContent,/JSON으로 백업/);
+ctx.localStorage.setItem=originalSetItem;
 console.log("Web editor smoke tests passed.");
