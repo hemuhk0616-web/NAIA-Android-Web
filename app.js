@@ -103,3 +103,33 @@ el("settings-file").addEventListener("change",async event=>{
   }catch(e){el("status").textContent="설정 가져오기 실패: "+e.message;}
 });
 updateList();
+
+function wildcardKey(){
+  const key=el("wildcard-name").value.trim().replace(/\\/g,"/");
+  if(!key||! /^[a-zA-Z0-9가-힣_.\/-]+$/.test(key)||key.split("/").some(x=>!x||x==="."||x===".."))throw Error("와일드카드 이름이 올바르지 않습니다");
+  return key;
+}
+el("wildcard-load").addEventListener("click",()=>{
+  try{
+    const key=wildcardKey();
+    if(!entries.has(key))throw Error("등록된 와일드카드가 없습니다");
+    el("wildcard-lines").value=entries.get(key).join("\n");
+    el("status").textContent=key+" 불러오기 완료";
+  }catch(e){el("status").textContent="오류: "+e.message;}
+});
+el("wildcard-save").addEventListener("click",()=>{
+  try{
+    const key=wildcardKey();
+    const lines=el("wildcard-lines").value.split(/\r?\n/).map(x=>x.trim()).filter(x=>x&&!x.startsWith("#"));
+    entries.set(key,lines);updateList();
+    el("status").textContent=key+" 저장 완료 (JSON으로 내보내면 백업 가능)";
+  }catch(e){el("status").textContent="오류: "+e.message;}
+});
+el("wildcard-delete").addEventListener("click",()=>{
+  try{
+    const key=wildcardKey();
+    if(!entries.delete(key))throw Error("등록된 와일드카드가 없습니다");
+    el("wildcard-lines").value="";updateList();
+    el("status").textContent=key+" 삭제 완료";
+  }catch(e){el("status").textContent="오류: "+e.message;}
+});
