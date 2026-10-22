@@ -2,3 +2,6 @@
 input[type=text]{width:100%;background:#101620;color:#eef2fb;border:1px solid #48546b;border-radius:9px;padding:12px;font:15px/1.5 monospace}
 .wildcard-picker{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .wildcard-item{padding:8px 11px;font-size:12px;max-width:100%;overflow-wrap:anywhere}
+
+input[type=number]{width:110px;max-width:100%;background:#101620;color:#eef2fb;border:1px solid #48546b;border-radius:9px;padding:12px;font:15px monospace}
+#batch-results{max-height:340px;overflow:auto}
