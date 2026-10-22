@@ -72,6 +72,16 @@ x=run("standing","(*char_in(2, pink hair & blue eyes)):prefix+=second-match");
 assert.match(x.result,/PREFIX: second-match/);
 x=run("standing","(*char_in(1, pink hair)):prefix+=wrong-slot");
 assert.doesNotMatch(x.result,/PREFIX: wrong-slot/);
+// Character wildcards must resolve before character-specific conditions.
+element("wildcard-name").value="character/hair";
+element("wildcard-lines").value="pink hair";
+element("wildcard-save").click();
+element("character-2").value="__character/hair__, blue eyes";
+x=run("standing","(*char_in(2, pink hair & blue eyes)):prefix+=expanded");
+assert.match(x.result,/PREFIX: expanded/);
+element("character-2").value="__missing-character__";
+x=run("standing","(*char_on(2)):prefix+=incorrect");
+assert.match(x.status,/등록되지 않은 와일드카드/);
 element("character-2").value="";
 for(const fn of ["char_on(3)","char_in(3, standing)"]){
   x=run("standing","(*"+fn+"):prefix+=incorrect");
