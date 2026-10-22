@@ -62,6 +62,8 @@ element("batch-count").value="3";
 element("batch-run").click();
 assert.match(element("batch-results").textContent,/\[3\]/);
 assert.match(element("batch-results").textContent,/MAIN: (alpha|beta)/);
+element("wildcard-export").click();
+assert.match(element("status").textContent,/TXT 내보내기 완료/);
 element("wildcard-delete").click();
 assert.equal(element("wildcard-picker").children.some(x=>x.textContent.includes("test/nested")),false);
 vm.runInContext('entries.clear();restoreWildcards();updateList()',ctx);
