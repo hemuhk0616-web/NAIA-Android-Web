@@ -3,15 +3,21 @@
 const entries = new Map([["pose",["standing"]],["face",["smile"]]]);
 const el = id => document.getElementById(id);
 let count=0;
+function resolveWildcard(name){
+  if(entries.has(name))return name;
+  for(const key of entries.keys())if(key.endsWith("/"+name))return key;
+  return null;
+}
 function expand(text, depth=0, stack=[]) {
   if(depth>24) throw Error("와일드카드 중첩 제한(24단계)");
   return text.replace(/__([\p{L}\p{N}_./-]+)__/gu,(match,name)=>{
-    if(!entries.has(name))throw Error("등록되지 않은 와일드카드: "+name);
-    if(stack.includes(name))throw Error("와일드카드 순환 참조: "+[...stack,name].join(" → "));
-    const values=entries.get(name);
+    const key=resolveWildcard(name);
+    if(!key)throw Error("등록되지 않은 와일드카드: "+name);
+    if(stack.includes(key))throw Error("와일드카드 순환 참조: "+[...stack,key].join(" → "));
+    const values=entries.get(key);
     if(!values.length)return "";
     const selected=values[Math.floor(Math.random()*values.length)];
-    return expand(selected,depth+1,[...stack,name]);
+    return expand(selected,depth+1,[...stack,key]);
   });
 }
 function applyRules(main, source){
