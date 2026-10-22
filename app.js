@@ -95,7 +95,7 @@ async function importFiles(files){
   el("status").textContent=count+"개 와일드카드 가져오기 완료 (브라우저에 자동 저장됨)";
 }
 el("files").addEventListener("change",event=>importFiles(Array.from(event.target.files||[])).catch(e=>{el("status").textContent="TXT 가져오기 실패: "+e.message;}));
-el("folder").addEventListener("change",event=>importFiles(Array.from(event.target.files||[])));
+el("folder").addEventListener("change",event=>importFiles(Array.from(event.target.files||[])).catch(e=>{el("status").textContent="폴더 가져오기 실패: "+e.message;}));
 el("save").addEventListener("click",saveDraft);
 el("restore").addEventListener("click",restoreDraft);
 el("export").addEventListener("click",()=>{
