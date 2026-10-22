@@ -31,6 +31,15 @@ function splitTagsSmart(text){
   if(part.trim())tags.push(part.trim());
   return tags;
 }
+function conditionTagVariants(tag){
+  const result=[tag.trim()];
+  const nai=tag.match(/^[-+]?\\d+(?:\\.\\d+)?::(.+)::$/);
+  const webui=tag.match(/^\\((.+):[-+]?\\d+(?:\\.\\d+)?\\)$/);
+  const plain=(nai?.[1]||webui?.[1]||tag).trim();
+  result.push(plain);
+  if(plain.startsWith("(")&&plain.endsWith(")"))result.push(plain.slice(1,-1).trim());
+  return result;
+}
 function evaluateCondition(source,tags,lineNumber){
   if(!source.trim())return true;
   const tokens=source.match(/<[^>]*>|&&|\|\||[()!]|[^\s()!&|]+/g)||[];
@@ -42,7 +51,7 @@ function evaluateCondition(source,tags,lineNumber){
     if(t==="!"){if(i>=tokens.length)error();return !atom();}
     if(t==="("){const v=or();if(tokens[i++]!==")")error();return v;}
     if(!t||t===")"||t==="&&"||t==="||")error();
-    return tags.includes(t);
+    return tags.some(tag=>conditionTagVariants(tag).includes(t));
   }
   function and(){let v=atom();while(tokens[i]==="&&"){i++;const rhs=atom();v=v&&rhs;}return v;}
   function or(){let v=and();while(tokens[i]==="||"){i++;const rhs=and();v=v||rhs;}return v;}
