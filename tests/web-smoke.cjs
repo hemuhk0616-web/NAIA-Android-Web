@@ -50,7 +50,7 @@ element("wildcard-name").value="test/nested";
 element("wildcard-lines").value="alpha\nbeta";
 element("wildcard-save").click();
 assert.equal(element("wildcard-picker").children.some(x=>x.textContent.includes("test/nested")),true);
-assert.match(local.get("naia-web-wildcards-v1"),/test\\/nested/);
+assert.equal(JSON.parse(local.get("naia-web-wildcards-v1"))["test/nested"].length,2);
 element("wildcard-lines").value="";
 element("wildcard-load").click();
 assert.equal(element("wildcard-lines").value,"alpha\nbeta");
