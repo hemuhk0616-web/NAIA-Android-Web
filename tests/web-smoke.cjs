@@ -65,9 +65,17 @@ assert.doesNotMatch(x.result,/PREFIX: wrong/);
 x=run("standing","(*char_in(1, blue hair & golden eyes)):prefix+=both");
 assert.match(x.result,/PREFIX: both/);
 element("character-1").value="";
-for(const fn of ["char_on(2)","char_in(2, standing)"]){
+element("character-2").value="pink hair, blue eyes";
+x=run("standing","(*char_on(2)):prefix+=second-active");
+assert.match(x.result,/PREFIX: second-active/);
+x=run("standing","(*char_in(2, pink hair & blue eyes)):prefix+=second-match");
+assert.match(x.result,/PREFIX: second-match/);
+x=run("standing","(*char_in(1, pink hair)):prefix+=wrong-slot");
+assert.doesNotMatch(x.result,/PREFIX: wrong-slot/);
+element("character-2").value="";
+for(const fn of ["char_on(3)","char_in(3, standing)"]){
   x=run("standing","(*"+fn+"):prefix+=incorrect");
-  assert.match(x.status,/캐릭터 1 슬롯만 지원|조건 함수는 웹 미리보기에서 미지원/);
+  assert.match(x.status,/캐릭터 1~2 슬롯만 지원|조건 함수는 웹 미리보기에서 미지원/);
 }
 x=run("standing, smile","(*standing && smile):prefix+=both");
 assert.match(x.result,/PREFIX: both/);
@@ -181,6 +189,11 @@ element("export").click();
 assert.match(element("status").textContent,/설정 JSON 내보내기 실패/);
 assert.match(element("status").textContent,/download blocked/);
 ctx.URL.createObjectURL=originalCreateObjectURL;
+element("character-2").value="silver hair";
+element("save").click();
+element("character-2").value="";
+element("restore").click();
+assert.equal(element("character-2").value,"silver hair");
 // Character prompt must survive save/restore and legacy drafts.
 element("character-1").value="blue hair, gold eyes";
 element("save").click();
