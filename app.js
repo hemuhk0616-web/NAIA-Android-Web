@@ -21,12 +21,22 @@ function expand(text, depth=0, stack=[]) {
   });
 }
 function splitTagsSmart(text){
-  const tags=[];let part="",depth=0;
+  const tags=[];let part="",angle=0,round=0,square=0,curly=0,quote="";
   for(const ch of text){
-    if(ch==="<")depth++;
-    else if(ch===">")depth=Math.max(0,depth-1);
-    if(ch===","&&depth===0){if(part.trim())tags.push(part.trim());part="";}
-    else part+=ch;
+    if(quote){part+=ch;if(ch===quote)quote="";continue;}
+    if(ch==='"'||ch==="'"){quote=ch;part+=ch;continue;}
+    if(ch==="<")angle++;
+    else if(ch===">")angle=Math.max(0,angle-1);
+    else if(ch==="(")round++;
+    else if(ch===")")round=Math.max(0,round-1);
+    else if(ch==="[")square++;
+    else if(ch==="]")square=Math.max(0,square-1);
+    else if(ch==="{")curly++;
+    else if(ch==="}")curly=Math.max(0,curly-1);
+    if(ch===","&&!angle&&!round&&!square&&!curly){
+      if(part.trim())tags.push(part.trim());
+      part="";
+    }else part+=ch;
   }
   if(part.trim())tags.push(part.trim());
   return tags;
