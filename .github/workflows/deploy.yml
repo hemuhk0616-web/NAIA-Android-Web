@@ -6,7 +6,9 @@ on:
       - 'index.html'
       - 'style.css'
       - 'app.js'
+      - 'tests/**'
       - '.github/workflows/deploy.yml'
+      - '.github/workflows/web-tests.yml'
 permissions:
   contents: read
   pages: write
@@ -15,7 +17,17 @@ concurrency:
   group: pages
   cancel-in-progress: false
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check app.js
+      - run: node tests/web-smoke.cjs
   deploy:
+    needs: test
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
