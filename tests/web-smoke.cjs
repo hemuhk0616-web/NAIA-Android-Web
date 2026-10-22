@@ -176,6 +176,13 @@ ctx.URL.createObjectURL=originalCreateObjectURL;
   assert.equal(JSON.parse(local.get("naia-web-wildcards-v1"))["restored/eyes"][0],"blue eyes");
   assert.match(element("status").textContent,/설정 저장 실패/);
   ctx.localStorage.setItem=setItem;
+  // Malformed backups must never replace the current editor state.
+  for(const malformed of ["null",'{"format":"naia-web-v1","main":"bad","rule":"","wildcards":{"broken":"not an array"}}']){
+    await element("settings-file").handlers.change({target:{files:[{size:128,text:async()=>malformed}]}});
+    assert.match(element("status").textContent,/설정 가져오기 실패/);
+    assert.equal(element("main").value,"restored prompt");
+    assert.equal(JSON.parse(local.get("naia-web-wildcards-v1"))["restored/eyes"][0],"blue eyes");
+  }
   console.log("Web editor smoke tests passed.");
 })().catch(error=>{console.error(error);process.exitCode=1;});
 
