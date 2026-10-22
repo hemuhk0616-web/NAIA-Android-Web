@@ -42,9 +42,24 @@ function conditionTagVariants(tag){
 }
 function evaluateCondition(source,tags,lineNumber){
   if(!source.trim())return true;
-  const tokens=source.match(/<[^>]*>|&&|\|\||[()&|]|(?:~!|[~!*])?[^\s()&|]+/g)||[];
+  const tokens=[];
+  let buffer="",angle=0,quote="";
+  const flush=()=>{if(buffer.trim())tokens.push(buffer.trim());buffer="";};
+  for(let pos=0;pos<source.length;pos++){
+    const ch=source[pos];
+    if(quote){buffer+=ch;if(ch===quote)quote="";continue;}
+    if(ch==='"'||ch==="'"){quote=ch;buffer+=ch;continue;}
+    if(ch==="<"){angle++;buffer+=ch;continue;}
+    if(ch===">"&&angle){angle--;buffer+=ch;continue;}
+    if(!angle&&(ch==="("||ch===")"||ch==="&"||ch==="|")){
+      flush();
+      if((ch==="&"||ch==="|")&&source[pos+1]===ch){tokens.push(ch+ch);pos++;}
+      else tokens.push(ch);
+    }else buffer+=ch;
+  }
+  flush();
   const error=()=>{throw Error(lineNumber+"행: 조건식 문법 오류 — "+source);};
-  if(tokens.join("").replace(/\s/g,"")!==source.replace(/\s/g,""))error();
+  if(quote||angle)error();
   let i=0;
   const variants=tags.flatMap(conditionTagVariants);
   function atom(){
@@ -54,7 +69,8 @@ function evaluateCondition(source,tags,lineNumber){
     const exactNot=t.startsWith("~!");
     const containsNot=!exactNot&&t.startsWith("~");
     const exact=!exactNot&&!containsNot&&(t.startsWith("*")||t.startsWith("!"));
-    const needle=(exactNot?t.slice(2):(exactNot||containsNot||exact?t.slice(1):t)).trim();
+    const raw=(exactNot?t.slice(2):(containsNot||exact?t.slice(1):t)).trim();
+    const needle=((raw.startsWith('"')&&raw.endsWith('"'))||(raw.startsWith("'")&&raw.endsWith("'"))?raw.slice(1,-1):raw).trim();
     if(!needle)error();
     const found=exact||exactNot?variants.includes(needle):variants.some(tag=>tag.includes(needle));
     return exactNot||containsNot?!found:found;
